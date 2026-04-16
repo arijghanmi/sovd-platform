@@ -1,7 +1,7 @@
 # coding: utf-8
 # ============================================================
 # redis_init_multi.py - Initialisation Redis Multi-ECU
-# AUTO-GENERE - Date: 2026-04-15 15:26:21
+# AUTO-GENERE - Date: 2026-04-16 14:59:27
 # ============================================================
 
 import redis, json

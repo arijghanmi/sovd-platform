@@ -2,7 +2,7 @@
 # ============================================================
 # ecu2_data_retrieval_api.py
 # AUTO-GENERE par generate_routes.py - Source: ecu2_config.yaml
-# Date: 2026-04-15 15:26:21
+# Date: 2026-04-16 14:59:27
 # Reference ASAM SOVD V1.0.0 : Section data
 # NE PAS MODIFIER MANUELLEMENT
 # ============================================================
@@ -31,14 +31,25 @@ def _get_all():
         if raw:
             it = json.loads(raw)
             it["ecu_id"] = _EID
+            it["value"] = _check_sim(it.get("value"))
             items.append(it)
     return items
+
+def _check_sim(val):
+    import datetime as dt
+    last = r.get(f"ecu{_EID}:simulator:last_seen")
+    if not last: return "ff"
+    diff = (dt.datetime.utcnow() - dt.datetime.fromisoformat(last)).total_seconds()
+    if diff > 5.0: return "ff"
+    if val in ["ff", "unavailable", None]: return "ff"
+    return val
 
 def _get_by_id(did):
     raw = r.get(f"{_PREFIX}:{did}")
     if not raw: return None
     it = json.loads(raw)
     it["ecu_id"] = _EID
+    it["value"] = _check_sim(it.get("value"))
     return it
 
 def _update(did, val):
@@ -65,11 +76,8 @@ async def get_ecu2_sse(request: Request):
                 try:
                     raw = r.get(f"{_PREFIX}:{_SDID}")
                     if raw:
-                        v = json.loads(raw).get("value", 0)
-                        if v in ["ff", "unavailable", None]:
-                            val = "ff"
-                        else:
-                            val = round(float(v), 1)
+                        v = _check_sim(json.loads(raw).get("value", 0))
+                        val = "ff" if v == "ff" else round(float(v), 1)
                     else:
                         val = "ff"
                 except:
@@ -87,8 +95,8 @@ async def get_ecu2_gear():
         raw = r.get(f"{_PREFIX}:{_SDID}")
         if raw:
             item = json.loads(raw)
-            v = item.get("value", 0)
-            if v in ["ff", "unavailable", None]:
+            v = _check_sim(item.get("value", 0))
+            if v == "ff":
                 val = "ff"
                 status = "simulator_offline"
             else:

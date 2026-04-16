@@ -228,11 +228,21 @@ def _get_all():
             items.append(it)
     return items
 
+def _check_sim(val):
+    import datetime as dt
+    last = r.get(f"ecu{{_EID}}:simulator:last_seen")
+    if not last: return "ff"
+    diff = (dt.datetime.utcnow() - dt.datetime.fromisoformat(last)).total_seconds()
+    if diff > 5.0: return "ff"
+    if val in ["ff", "unavailable", None]: return "ff"
+    return val
+
 def _get_by_id(did):
     raw = r.get(f"{{_PREFIX}}:{{did}}")
     if not raw: return None
     it = json.loads(raw)
     it["ecu_id"] = _EID
+    it["value"] = _check_sim(it.get("value"))
     return it
 
 def _update(did, val):
@@ -259,11 +269,8 @@ async def get_{px}_sse(request: Request):
                 try:
                     raw = r.get(f"{{_PREFIX}}:{{_SDID}}")
                     if raw:
-                        v = json.loads(raw).get("value", 0)
-                        if v in ["ff", "unavailable", None]:
-                            val = "ff"
-                        else:
-                            val = round(float(v), 1)
+                        v = _check_sim(json.loads(raw).get("value", 0))
+                        val = "ff" if v == "ff" else round(float(v), 1)
                     else:
                         val = "ff"
                 except:
@@ -281,8 +288,8 @@ async def get_{px}_{sdid}():
         raw = r.get(f"{{_PREFIX}}:{{_SDID}}")
         if raw:
             item = json.loads(raw)
-            v = item.get("value", 0)
-            if v in ["ff", "unavailable", None]:
+            v = _check_sim(item.get("value", 0))
+            if v == "ff":
                 val = "ff"
                 status = "simulator_offline"
             else:
@@ -638,8 +645,14 @@ print("[Redis] Multi-ECU init complete (ECU1 + ECU2)")
 def generate_simulator(cfg, src, px):
     ecu      = cfg["ecu"]
     eid      = ecu["entity_id"]
+    # Lire depuis ecu1_simulation.yaml - fichier separ� (Dev/Sim separation)
+    sim_path = os.path.join(os.path.dirname(__file__), f"ecu{eid}_simulation.yaml")
+    if not os.path.exists(sim_path):
+        print(f"  [SKIP] {px}_simulator.py - ecu{eid}_simulation.yaml introuvable")
+        return ""
+    with open(sim_path, "r") as f:
+        sim = yaml.safe_load(f)
     dpfx     = ecu["data"]["redis_key_prefix"]
-    sim      = ecu["data"].get("simulation", {})
     mode     = sim.get("mode", "random")
     loop     = sim.get("loop", True)
     interval = sim.get("interval_ms", 500)
@@ -685,6 +698,7 @@ def run_scenario():
             if data_id in step:
                 write_value(data_id, step[data_id])
         r.set(f"ecu{{_EID}}:simulator:status", "online")
+        r.set(f"ecu{{_EID}}:simulator:last_seen", datetime.datetime.utcnow().isoformat())
         elapsed = 0.0
         while elapsed < duration:
             time.sleep(_INTERVAL)

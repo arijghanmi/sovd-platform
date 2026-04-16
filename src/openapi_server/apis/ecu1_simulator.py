@@ -2,7 +2,7 @@
 # ============================================================
 # ecu1_simulator.py
 # AUTO-GENERE par generate_routes.py - Source: ecu1_config.yaml
-# Date: 2026-04-15 15:26:21
+# Date: 2026-04-16 14:59:27
 # Reference ASAM SOVD V1.0.0 : Section data / simulation
 # NE PAS MODIFIER MANUELLEMENT
 # ============================================================
@@ -45,6 +45,7 @@ def run_scenario():
             if data_id in step:
                 write_value(data_id, step[data_id])
         r.set(f"ecu{_EID}:simulator:status", "online")
+        r.set(f"ecu{_EID}:simulator:last_seen", datetime.datetime.utcnow().isoformat())
         elapsed = 0.0
         while elapsed < duration:
             time.sleep(_INTERVAL)

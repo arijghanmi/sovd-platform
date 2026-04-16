@@ -2,7 +2,7 @@
 # ============================================================
 # ecu1_updates_api.py
 # AUTO-GENERE par generate_routes.py - Source: ecu1_config.yaml
-# Date: 2026-04-15 15:26:21
+# Date: 2026-04-16 14:59:27
 # Reference ASAM SOVD V1.0.0 : Section software-updates
 # NE PAS MODIFIER MANUELLEMENT
 # ============================================================

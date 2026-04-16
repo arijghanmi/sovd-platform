@@ -42,35 +42,7 @@ ecu:
       min_value: 20
       max_value: 160
       unit: "km/h"
-    simulation:
-      mode: scenario
-      loop: true
-      interval_ms: 500
-      scenario:
-        - duration: 2
-          speed: 0
-          rpm: 800
-          fuel_level: 65.0
-          temperature: 85.0
-          voltage: 12.6
-        - duration: 2
-          speed: 50
-          rpm: 2500
-          fuel_level: 64.8
-          temperature: 88.0
-          voltage: 12.5
-        - duration: 2
-          speed: 70
-          rpm: 3200
-          fuel_level: 64.5
-          temperature: 91.0
-          voltage: 12.4
-        - duration: 3
-          speed: 90
-          rpm: 4000
-          fuel_level: 64.0
-          temperature: 95.0
-          voltage: 12.3
+
     initial_data:
       - id: "speed"
         value: 0
