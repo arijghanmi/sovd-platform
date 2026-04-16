@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOVD Diagnostic Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:        #f0f2f8;
+  --bg2:       #ffffff;
+  --surface:   #ffffff;
+  --surface2:  #f5f6fc;
+  --surface3:  #eceef8;
+  --border:    #dde1f0;
+  --border2:   #c8cde8;
+  --text:      #0f1225;
+  --text2:     #3a3f5c;
+  --muted:     #7b82a6;
+  --accent:    #2f5be8;
+  --accent2:   #1a3dc4;
+  --accent-bg: rgba(47,91,232,.07);
+  --green:     #0a7a52;
+  --green-bg:  rgba(10,122,82,.07);
+  --red:       #c93535;
+  --red-bg:    rgba(201,53,53,.07);
+  --amber:     #9a6800;
+  --amber-bg:  rgba(154,104,0,.07);
+  --purple:    #6040c0;
+  --purple-bg: rgba(96,64,192,.07);
+  --teal:      #0a7080;
+  --teal-bg:   rgba(10,112,128,.07);
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+  --display:   'Syne', sans-serif;
+  --r:         12px;
+  --r-sm:      8px;
+  --shadow:    0 2px 12px rgba(15,18,37,.06);
+  --shadow-md: 0 4px 24px rgba(15,18,37,.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: var(--shadow);
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-box {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-weight: 800; font-size: 14px; color: #fff;
+  box-shadow: 0 2px 8px rgba(47,91,232,.3);
+}
+.logo-info { display: flex; flex-direction: column; gap: 1px; }
+.logo-text { font-family: var(--display); font-weight: 700; font-size: .92rem; color: var(--text); letter-spacing: -.01em; }
+.logo-sub  { font-size: .62rem; color: var(--muted); font-weight: 400; letter-spacing: .02em; }
+.hdr-right { display: flex; align-items: center; gap: 10px; }
+.server-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: .67rem; color: var(--muted);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 11px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dot-green { background: var(--green); }
+.dot-pulse { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+.btn-swagger {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--sans); font-size: .72rem; font-weight: 600;
+  color: var(--accent); background: var(--accent-bg);
+  border: 1px solid rgba(47,91,232,.2);
+  border-radius: 7px; padding: 6px 13px;
+  cursor: pointer; text-decoration: none; transition: all .15s;
+}
+.btn-swagger:hover { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(47,91,232,.25); }
+
+/* ═══════════════════════════════════════
+   NAV TABS
+═══════════════════════════════════════ */
+.nav-bar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex; gap: 2px;
+  overflow-x: auto;
+  position: sticky;
+  top: 60px;        /* hauteur du header */
+  z-index: 99;
+  box-shadow: var(--shadow);
+}
+.nav-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 12px 16px;
+  font-size: .75rem; font-weight: 600;
+  color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all .15s;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab .tab-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: .5;
+}
+
+/* ═══════════════════════════════════════
+   MAIN
+═══════════════════════════════════════ */
+main { max-width: 1200px; margin: 0 auto; padding: 24px 24px 48px; display: flex; flex-direction: column; gap: 24px; }
+
+.section-label {
+  font-family: var(--display); font-size: .68rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* ═══════════════════════════════════════
+   CARD
+═══════════════════════════════════════ */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: box-shadow .2s;
+}
+.card:hover { box-shadow: var(--shadow-md); }
+.card-head {
+  padding: 16px 22px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; background: var(--surface2);
+}
+.card-title {
+  font-family: var(--display); font-size: .85rem; font-weight: 700;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  color: var(--text);
+}
+.card-body  { padding: 20px 22px; }
+
+/* ═══════════════════════════════════════
+   METHOD BADGES
+═══════════════════════════════════════ */
+.method {
+  font-family: var(--mono); font-size: .6rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 4px; letter-spacing: .04em;
+}
+.m-get    { background: rgba(47,91,232,.09);  color: #1a3dc4; border: 1px solid rgba(47,91,232,.2); }
+.m-delete { background: var(--red-bg);        color: var(--red); border: 1px solid rgba(201,53,53,.2); }
+.m-sse    { background: var(--purple-bg);     color: var(--purple); border: 1px solid rgba(96,64,192,.2); }
+.m-post   { background: var(--green-bg);      color: var(--green); border: 1px solid rgba(10,122,82,.2); }
+.m-put    { background: var(--teal-bg);       color: var(--teal); border: 1px solid rgba(10,112,128,.2); }
+.ep-link {
+  font-family: var(--mono); font-size: .67rem; color: var(--accent);
+  text-decoration: none; border-bottom: 1px dashed rgba(47,91,232,.3);
+  transition: color .15s; cursor: pointer;
+}
+.ep-link:hover { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+/* ═══════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--sans); font-size: .73rem; font-weight: 600;
+  padding: 7px 14px; border-radius: 7px; border: 1px solid transparent;
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn-blue   { background: var(--accent-bg); color: var(--accent); border-color: rgba(47,91,232,.2); }
+.btn-blue:hover:not(:disabled)   { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(47,91,232,.25); }
+.btn-red    { background: var(--red-bg); color: var(--red); border-color: rgba(201,53,53,.2); }
+.btn-red:hover:not(:disabled)    { background: var(--red); color: #fff; }
+.btn-green  { background: var(--green-bg); color: var(--green); border-color: rgba(10,122,82,.2); }
+.btn-green:hover:not(:disabled)  { background: var(--green); color: #fff; }
+.btn-purple { background: var(--purple-bg); color: var(--purple); border-color: rgba(96,64,192,.2); }
+.btn-purple:hover:not(:disabled) { background: var(--purple); color: #fff; }
+.btn-teal   { background: var(--teal-bg); color: var(--teal); border-color: rgba(10,112,128,.2); }
+.btn-teal:hover:not(:disabled)   { background: var(--teal); color: #fff; }
+.btn-ghost  { background: var(--surface2); color: var(--muted); border-color: var(--border); }
+.btn-ghost:hover:not(:disabled)  { color: var(--text); border-color: var(--border2); }
+.btn-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════
+   KPIs
+═══════════════════════════════════════ */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 12px; margin-bottom: 18px; }
+.kpi {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 16px 14px; text-align: center;
+  transition: border-color .15s;
+}
+.kpi:hover { border-color: var(--border2); }
+.kpi-val { font-family: var(--mono); font-size: 1.9rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.kpi-lbl { font-size: .62rem; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: .07em; font-weight: 500; }
+
+/* ═══════════════════════════════════════
+   TABLE
+═══════════════════════════════════════ */
+.tbl-wrap { overflow-x: auto; border-radius: var(--r-sm); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: .77rem; }
+thead th {
+  text-align: left; padding: 9px 14px;
+  font-size: .61rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border);
+  font-family: var(--display);
+}
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(47,91,232,.025); }
+tbody td { padding: 10px 14px; vertical-align: middle; }
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 4px; font-size: .66rem; font-weight: 700;
+  font-family: var(--mono); letter-spacing: .03em;
+}
+.b-active  { background: var(--red-bg);    color: var(--red); }
+.b-perm    { background: var(--amber-bg);  color: var(--amber); }
+.b-pending { background: var(--purple-bg); color: var(--purple); }
+.b-good    { background: var(--green-bg);  color: var(--green); }
+.b-info    { background: var(--green-bg);  color: var(--green); }
+.b-warning { background: var(--amber-bg);  color: var(--amber); }
+.b-error   { background: var(--red-bg);    color: var(--red); }
+.b-online  { background: var(--accent-bg); color: var(--accent); }
+.empty-row { text-align: center; padding: 40px; color: var(--muted); font-size: .78rem; }
+
+/* ═══════════════════════════════════════
+   SPEED
+═══════════════════════════════════════ */
+.speed-layout { display: grid; grid-template-columns: 210px 1fr; gap: 18px; align-items: start; }
+@media(max-width:640px){ .speed-layout{ grid-template-columns:1fr; } }
+.speed-box {
+  background: linear-gradient(145deg, var(--surface2), var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 26px 20px; text-align: center;
+}
+.speed-num  { font-family: var(--mono); font-size: 3.2rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.speed-unit { font-size: .75rem; color: var(--muted); margin-top: 6px; font-weight: 500; }
+.speed-ts   { font-family: var(--mono); font-size: .58rem; color: var(--muted); margin-top: 10px; }
+.chart-wrap  { position: relative; height: 195px; }
+.chart-label { font-size: .63rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+
+/* ═══════════════════════════════════════
+   SSE STATUS
+═══════════════════════════════════════ */
+.sse-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .7rem; font-weight: 600; font-family: var(--mono);
+  padding: 5px 11px; border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2); color: var(--muted);
+}
+.sse-status.on { background: var(--green-bg); color: var(--green); border-color: rgba(10,122,82,.25); }
+.sse-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.sse-status.on .sse-dot { animation: blink 1.2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.25} }
+
+/* ═══════════════════════════════════════
+   DATA SECTION
+═══════════════════════════════════════ */
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 12px; margin-bottom: 18px;
+}
+.data-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 16px;
+  display: flex; flex-direction: column; gap: 5px;
+  transition: all .2s; cursor: default;
+}
+.data-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(47,91,232,.08); }
+.data-card-id   { font-family: var(--mono); font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.data-card-val  { font-family: var(--mono); font-size: 1.6rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.data-card-unit { font-size: .68rem; color: var(--muted); }
+.data-card-desc { font-size: .66rem; color: var(--muted); margin-top: 3px; }
+
+/* ═══════════════════════════════════════
+   WRITE FORM
+═══════════════════════════════════════ */
+.write-form {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); margin-top: 14px;
+}
+.write-form label { font-size: .73rem; font-weight: 600; color: var(--muted); }
+.write-form select, .write-form input[type=number] {
+  font-family: var(--mono); font-size: .77rem;
+  padding: 6px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); outline: none; transition: border-color .15s;
+}
+.write-form select:focus, .write-form input[type=number]:focus { border-color: var(--accent); }
+.write-result {
+  font-family: var(--mono); font-size: .7rem;
+  color: var(--green); background: var(--green-bg);
+  border: 1px solid rgba(10,122,82,.2);
+  border-radius: 6px; padding: 5px 11px;
+  display: none; align-items: center; gap: 5px;
+}
+.write-result.show { display: inline-flex; }
+
+/* ═══════════════════════════════════════
+   MAPPING TABLE
+═══════════════════════════════════════ */
+.map-tbl { width: 100%; border-collapse: collapse; font-size: .76rem; }
+.map-tbl th {
+  text-align: left; padding: 9px 16px;
+  font-size: .61rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border);
+  font-family: var(--display);
+}
+.map-tbl td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.map-tbl tr:last-child td { border-bottom: none; }
+.map-tbl tr:hover td { background: rgba(47,91,232,.025); }
+.sw-link { font-family: var(--mono); font-size: .67rem; color: var(--accent); text-decoration: none; }
+.sw-link:hover { text-decoration: underline; }
+.feat-name { font-weight: 600; font-size: .79rem; }
+.feat-desc { font-size: .67rem; color: var(--muted); margin-top: 2px; }
+
+/* ═══════════════════════════════════════
+   NOTE BOX
+═══════════════════════════════════════ */
+.note {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--amber-bg); border: 1px solid rgba(154,104,0,.18);
+  border-radius: var(--r-sm); padding: 11px 14px;
+  font-size: .73rem; color: var(--amber); margin-top: 14px; line-height: 1.5;
+}
+.note-info {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--accent-bg); border: 1px solid rgba(47,91,232,.18);
+  border-radius: var(--r-sm); padding: 11px 14px;
+  font-size: .73rem; color: var(--accent); margin-top: 14px; line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════
+   UPDATES
+═══════════════════════════════════════ */
+.update-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: border-color .15s;
+}
+.update-card.critical { border-left: 3px solid var(--red); }
+.update-card:hover { border-color: var(--border2); }
+.update-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.update-version { font-family: var(--mono); font-size: .9rem; font-weight: 600; color: var(--accent); }
+.update-desc { font-size: .74rem; color: var(--muted); margin-top: 3px; }
+.update-meta { display: flex; gap: 16px; font-family: var(--mono); font-size: .63rem; color: var(--muted); }
+.progress-wrap { display: none; flex-direction: column; gap: 6px; margin-top: 4px; }
+.progress-wrap.show { display: flex; }
+.progress-bar-bg { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  border-radius: 3px; transition: width .4s ease;
+}
+.progress-label { font-family: var(--mono); font-size: .66rem; color: var(--muted); }
+.progress-label.done { color: var(--green); font-weight: 700; }
+
+/* ═══════════════════════════════════════
+   DISCOVERY & CAPABILITIES
+═══════════════════════════════════════ */
+.discovery-layout {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+@media(max-width:768px){ .discovery-layout{ grid-template-columns:1fr; } }
+
+.entity-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 18px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.entity-header {
+  display: flex; align-items: center; gap: 10px;
+}
+.entity-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.entity-id { font-family: var(--mono); font-size: .78rem; font-weight: 600; color: var(--accent); }
+.entity-name { font-size: .72rem; color: var(--muted); margin-top: 1px; }
+.entity-standard { font-family: var(--mono); font-size: .62rem; color: var(--muted); }
+
+.resource-links {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.res-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono); font-size: .65rem; font-weight: 600;
+  padding: 4px 10px; border-radius: 5px;
+  background: var(--accent-bg); color: var(--accent);
+  border: 1px solid rgba(47,91,232,.18);
+  text-decoration: none; cursor: pointer; transition: all .15s;
+}
+.res-link:hover { background: var(--accent); color: #fff; }
+
+.capabilities-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 18px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.cap-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.cap-label { font-size: .68rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .07em; }
+.cap-value { font-family: var(--mono); font-size: .78rem; font-weight: 600; color: var(--text); }
+.cap-divider { height: 1px; background: var(--border); }
+
+.mode-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: .65rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 4px;
+  background: var(--green-bg); color: var(--green);
+  border: 1px solid rgba(10,122,82,.2);
+}
+.mode-badge .dot { animation: blink 1.5s ease-in-out infinite; }
+
+.endpoints-count {
+  font-family: var(--mono); font-size: 2.4rem; font-weight: 700;
+  color: var(--accent); line-height: 1;
+}
+.endpoints-label { font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
+
+.btn-schema {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .72rem; font-weight: 600;
+  padding: 6px 13px; border-radius: 7px;
+  background: var(--accent-bg); color: var(--accent);
+  border: 1px solid rgba(47,91,232,.2);
+  cursor: pointer; text-decoration: none; transition: all .15s;
+}
+.btn-schema:hover { background: var(--accent); color: #fff; }
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: 22px; right: 22px;
+  background: var(--text); color: #fff;
+  padding: 10px 18px; border-radius: 9px;
+  font-size: .77rem; font-weight: 500;
+  box-shadow: var(--shadow-md);
+  opacity: 0; transform: translateY(10px); transition: all .22s;
+  pointer-events: none; z-index: 999; max-width: 320px;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+.ecu-select {
+  font-family: var(--mono); font-size: .72rem; font-weight: 600;
+  padding: 5px 10px; border-radius: 7px;
+  border: 1px solid var(--accent); background: var(--accent-bg);
+  color: var(--accent); outline: none; cursor: pointer;
+}
+.ecu-select:focus { border-color: var(--accent2); }
+.ecu1-badge { background: var(--accent-bg); color: var(--accent); border: 1px solid rgba(47,91,232,.25); }
+.ecu2-badge { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(96,64,192,.25); }
+
+/* ═══════════════════════════════════════
+   LOADING SKELETON
+═══════════════════════════════════════ */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px; display: inline-block;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-box">S</div>
+    <div class="logo-info">
+      <div class="logo-text">SOVD Dashboard</div>
+      <div class="logo-sub">ASAM SOVD V1.0.0 · ECU Engine · Raspberry Pi 4</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="server-pill">
+      <div class="dot dot-green dot-pulse"></div>
+      <span id="serverAddr">loading…</span>
+    </div>
+    <a id="swaggerHref" href="#" target="_blank" class="btn-swagger">⇗ Swagger UI</a>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<nav class="nav-bar">
+  <button class="nav-tab active" onclick="navTo('sec-faults')"><div class="tab-dot"></div> Fault Handling</button>
+  <button class="nav-tab" onclick="navTo('sec-data')"><div class="tab-dot"></div> Vehicle Data</button>
+  <button class="nav-tab" onclick="navTo('sec-logs')"><div class="tab-dot"></div> Logging</button>
+  <button class="nav-tab" onclick="navTo('sec-updates')"><div class="tab-dot"></div> OTA Updates</button>
+  <button class="nav-tab" onclick="navTo('sec-speed')"><div class="tab-dot"></div> Speed SSE</button>
+  <button class="nav-tab" onclick="navTo('sec-discovery')"><div class="tab-dot"></div> Discovery</button>
+  <button class="nav-tab" onclick="navTo('sec-mapping')"><div class="tab-dot"></div> Endpoint Map</button>
+</nav>
+
+<main>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 1 — FAULT HANDLING (Multi-ECU)
+  ═══════════════════════════════════════ -->
+  <div id="sec-faults">
+    <div class="section-label">Fault Handling — Multi-ECU</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          Fault Memory
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/1/faults</span>
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/2/faults</span>
+        </div>
+        <div class="btn-row">
+          <!-- ECU Selector -->
+          <select id="faultEcuSelect" class="ecu-select">
+            <option value="all">All ECUs</option>
+            <option value="1">ECU 1 — Engine</option>
+            <option value="2">ECU 2 — Transmission</option>
+          </select>
+          <button class="btn btn-blue"  onclick="refreshFaults()">Get Faults</button>
+          <button class="btn btn-blue"  onclick="refreshActive()">Active Only</button>
+          <button class="btn btn-blue"  onclick="refreshPermanent()">Permanent</button>
+          <button class="btn btn-red"   onclick="clearFaults()">Clear All</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-val" id="kActive" style="color:var(--red)">—</div><div class="kpi-lbl">Active</div></div>
+          <div class="kpi"><div class="kpi-val" id="kPending" style="color:var(--purple)">—</div><div class="kpi-lbl">Pending</div></div>
+          <div class="kpi"><div class="kpi-val" id="kPerm" style="color:var(--amber)">—</div><div class="kpi-lbl">Permanent</div></div>
+          <div class="kpi"><div class="kpi-val" id="kTotal">—</div><div class="kpi-lbl">Total</div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>ECU</th><th>DTC Code</th><th>Description</th><th>Component</th><th>Severity</th><th>Type</th><th>Timestamp</th></tr>
+            </thead>
+            <tbody id="faultsTbody">
+              <tr><td colspan="7" class="empty-row">Click « Get Faults » to load DTCs</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          ⚠ <span><strong>Clear All</strong> (UDS 0x14) efface uniquement les faults <strong>active</strong> et <strong>pending</strong>. Les <strong>permanent faults</strong> ne sont pas effaçables — comportement conforme ASAM SOVD / ISO 14229.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 2 — VEHICLE DATA (Multi-ECU)
+  ═══════════════════════════════════════ -->
+  <div id="sec-data">
+    <div class="section-label">Vehicle Data — Reading &amp; Writing</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          ECU Data Parameters
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/1/data</span>
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/2/data</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-blue" onclick="loadAllData()">Get All Data</button>
+          <button class="btn btn-blue" onclick="loadEcu1Data()">Get ECU 1 Data</button>
+          <button class="btn btn-purple" onclick="loadEcu2Data()">Get ECU 2 Data</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- ECU 1 — Engine -->
+        <div style="margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span class="badge b-online" style="font-size:.7rem;padding:3px 10px;">ECU 1</span>
+            <span style="font-size:.72rem;font-weight:600;color:var(--text)">Engine ECU</span>
+            <span style="font-size:.65rem;color:var(--muted);font-family:var(--mono)">/ecu/1/data</span>
+          </div>
+          <div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-bottom:10px;">
+            <div class="kpi"><div class="kpi-val" id="dSpeed">—</div><div class="kpi-lbl">Speed km/h</div></div>
+            <div class="kpi"><div class="kpi-val" id="dRpm">—</div><div class="kpi-lbl">RPM</div></div>
+            <div class="kpi"><div class="kpi-val" id="dFuel">—</div><div class="kpi-lbl">Fuel %</div></div>
+            <div class="kpi"><div class="kpi-val" id="dTemp">—</div><div class="kpi-lbl">Temp °C</div></div>
+            <div class="kpi"><div class="kpi-val" id="dVolt">—</div><div class="kpi-lbl">Voltage V</div></div>
+          </div>
+          <div class="data-grid" id="dataGrid1"></div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+
+        <!-- ECU 2 — Transmission -->
+        <div style="margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span class="badge b-pending" style="font-size:.7rem;padding:3px 10px;">ECU 2</span>
+            <span style="font-size:.72rem;font-weight:600;color:var(--text)">Transmission ECU</span>
+            <span style="font-size:.65rem;color:var(--muted);font-family:var(--mono)">/ecu/2/data</span>
+          </div>
+          <div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-bottom:10px;">
+            <div class="kpi"><div class="kpi-val" id="dGear" style="color:var(--purple)">—</div><div class="kpi-lbl">Gear</div></div>
+            <div class="kpi"><div class="kpi-val" id="dOilTemp" style="color:var(--red)">—</div><div class="kpi-lbl">Oil Temp °C</div></div>
+            <div class="kpi"><div class="kpi-val" id="dPressure" style="color:var(--teal)">—</div><div class="kpi-lbl">Pressure bar</div></div>
+            <div class="kpi"><div class="kpi-val" id="dTorque" style="color:var(--accent)">—</div><div class="kpi-lbl">Torque Nm</div></div>
+            <div class="kpi"><div class="kpi-val" id="dEfficiency" style="color:var(--green)">—</div><div class="kpi-lbl">Efficiency %</div></div>
+          </div>
+          <div class="data-grid" id="dataGrid2"></div>
+        </div>
+
+        <!-- Write Form -->
+        <div class="write-form">
+          <label>Write (UDS 0x2E)</label>
+          <select id="writeEcu" class="ecu-select">
+            <option value="1">ECU 1</option>
+            <option value="2">ECU 2</option>
+          </select>
+          <select id="writeId">
+            <option value="speed">speed</option>
+            <option value="rpm">rpm</option>
+            <option value="fuel_level">fuel_level</option>
+            <option value="temperature">temperature</option>
+            <option value="voltage">voltage</option>
+          </select>
+          <input type="number" id="writeVal" placeholder="New value" style="width:120px;" step="0.1">
+          <button class="btn btn-teal" onclick="writeData()">Write Value (PUT)</button>
+          <div class="write-result" id="writeResult">✓ <span id="writeResultTxt"></span></div>
+        </div>
+        <div class="note-info">
+          ℹ <span>Données persistées dans <strong>Redis</strong> — clés séparées par ECU (<code>ecu1:data:*</code> / <code>ecu2:data:*</code>). Analogie <strong>ara::per::KeyValueStorage</strong> AUTOSAR AP.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 3 — LOGS (Multi-ECU)
+  ═══════════════════════════════════════ -->
+  <div id="sec-logs">
+    <div class="section-label">Logging — Multi-ECU</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          Diagnostic Logs
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/1/logs</span>
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/2/logs</span>
+        </div>
+        <div class="btn-row">
+          <select id="logEcuSelect" class="ecu-select">
+            <option value="all">All ECUs</option>
+            <option value="1">ECU 1 — Engine</option>
+            <option value="2">ECU 2 — Transmission</option>
+          </select>
+          <button class="btn btn-blue" onclick="loadLogs()">Get Logs</button>
+          <button class="btn btn-blue" onclick="loadLogs('INFO')">INFO</button>
+          <button class="btn btn-blue" onclick="loadLogs('WARNING')">WARNING</button>
+          <button class="btn btn-red"  onclick="clearLogs()">Clear Logs</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-bottom:16px;">
+          <div class="kpi"><div class="kpi-val" id="lTotal">—</div><div class="kpi-lbl">Total Logs</div></div>
+          <div class="kpi"><div class="kpi-val" id="lInfo" style="color:var(--green)">—</div><div class="kpi-lbl">INFO</div></div>
+          <div class="kpi"><div class="kpi-val" id="lWarn" style="color:var(--amber)">—</div><div class="kpi-lbl">WARNING</div></div>
+          <div class="kpi"><div class="kpi-val" id="lErr"  style="color:var(--red)">—</div><div class="kpi-lbl">ERROR</div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>Timestamp</th><th>ECU</th><th>Level</th><th>Event</th><th>Detail</th><th>Source</th></tr>
+            </thead>
+            <tbody id="logsTbody">
+              <tr><td colspan="6" class="empty-row">Click « Get Logs » to load diagnostic logs</td></tr>
+            </tbody>
+          </table>
+        </div>
+<div style="display:flex;justify-content:center;margin-top:12px;gap:10px;">
+  <button class="btn btn-ghost" onclick="showMoreLogs()">↓ Show More</button>
+  <button class="btn btn-ghost" onclick="showLessLogs()">↑ Show Less</button>
+  <span id="logsLimitLabel" style="font-family:var(--mono);font-size:.7rem;color:var(--muted);align-self:center;">showing 10</span>
+</div>
+        <div class="note-info">
+          ℹ <span>Logs générés <strong>automatiquement</strong> à chaque fault détecté ou effacé. Persistés dans <strong>Redis</strong> séparément par ECU (<code>ecu1:logs:entries</code> / <code>ecu2:logs:entries</code>).</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 4 — OTA UPDATES
+  ═══════════════════════════════════════ -->
+  <div id="sec-updates">
+    <div class="section-label">Software Updates (OTA)</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          OTA Update Manager
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/1/updates</span>
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/2/updates</span>
+        </div>
+        <div class="btn-row">
+          <select id="updateEcuSelect" class="ecu-select">
+            <option value="1">ECU 1 — Engine</option>
+            <option value="2">ECU 2 — Transmission</option>
+          </select>
+          <button class="btn btn-blue" onclick="loadUpdates()">Get Available Updates</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:16px;">
+          <div class="kpi"><div class="kpi-val" id="uTotal">—</div><div class="kpi-lbl">Available</div></div>
+          <div class="kpi"><div class="kpi-val" id="uCritical" style="color:var(--red)">—</div><div class="kpi-lbl">Critical</div></div>
+          <div class="kpi"><div class="kpi-val" id="uInstalled" style="color:var(--green)">—</div><div class="kpi-lbl">Installed</div></div>
+        </div>
+        <div id="updatesGrid" style="display:flex;flex-direction:column;gap:12px;">
+          <div style="text-align:center;padding:32px;color:var(--muted);font-size:.78rem;">
+            Click « Get Available Updates » to load OTA updates
+          </div>
+        </div>
+        <div class="note-info" style="margin-top:14px;">
+          ℹ <span>Mises à jour simulées côté serveur (0→100% en ~15s). Équivalent UDS <strong>0x34</strong> RequestDownload + <strong>0x36</strong> TransferData + <strong>0x37</strong> TransferExit — conforme ASAM SOVD Software Updates domain .</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 5 — SPEED SSE
+  ═══════════════════════════════════════ -->
+  <div id="sec-speed">
+    <div class="section-label">Vehicle Data — Speed (ResponseOnEvent)</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          Vehicle Speed
+          <span class="method m-get">GET</span>
+          <span class="ep-link">/ecu/1/data/speed</span>
+          <span class="method m-sse">SSE</span>
+          <span class="ep-link">/ecu/1/data/speed/events</span>
+        </div>
+        <div class="btn-row">
+          <div class="sse-status" id="speedSseSt"><div class="sse-dot"></div><span id="speedSseLbl">Disconnected</span></div>
+          <button class="btn btn-blue"  onclick="getSpeedOnce()">Get Speed</button>
+          <button class="btn btn-green" id="btnSpeedSub"   onclick="subSpeed()">Subscribe (ResponseOnEvent)</button>
+          <button class="btn btn-ghost" id="btnSpeedUnsub" onclick="unsubSpeed()" disabled>✕ Unsubscribe</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="speed-layout">
+          <div class="speed-box">
+            <div class="speed-num" id="speedVal">—</div>
+            <div class="speed-unit">km / h</div>
+            <div class="speed-ts" id="speedTs">No data</div>
+            <div style="margin-top:14px;font-size:.62rem;color:var(--muted);line-height:1.6;">
+              UDS 0x22 → one-shot<br>UDS 0x86 → cyclic push
+            </div>
+          </div>
+          <div>
+            <div class="chart-label">History — last 60 values (SSE push every 500ms)</div>
+            <div class="chart-wrap"><canvas id="speedChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 6 — DISCOVERY & CAPABILITIES (NEW)
+  ═══════════════════════════════════════ -->
+  <div id="sec-discovery">
+    <div class="section-label">Discovery & Capabilities — ASAM SOVD Online Mode</div>
+    <div class="discovery-layout">
+
+      <!-- Discovery Card -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            ECU Discovery
+            <span class="method m-get">GET</span>
+            <span class="ep-link">/ecu</span>
+            <span class="method m-get">GET</span>
+            <span class="ep-link">/ecu/1</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-blue" onclick="loadDiscovery()">Discover ECU</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="entity-card" id="discoveryCard">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:.77rem;">
+              Click « Discover ECU » to navigate the SOVD entity tree
+            </div>
+          </div>
+          <div class="note-info" style="margin-top:12px;">
+            ℹ <span><strong>Discovery</strong> ASAM SOVD — navigation dynamique dans l'arbre des entités sans configuration préalable. Équivalent HATEOAS REST.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Capabilities Card -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            Online Capability Description
+            <span class="method m-get">GET</span>
+            <span class="ep-link">/ecu/1/docs</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-blue" onclick="loadCapabilities()">Load Capabilities</button>
+            <a id="btnFullSchema" href="#" target="_blank" class="btn-schema" style="display:none">⇗ Full Schema</a>
+            <button class="btn btn-ghost" onclick="viewConfig(1)">📄 View Config ECU 1</button>
+            <button class="btn btn-ghost" onclick="viewConfig(2)">📄 View Config ECU 2</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="capabilitiesCard">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:.77rem;">
+              Click « Load Capabilities » to fetch the ECU's self-description
+            </div>
+          </div>
+          <div class="note-info" style="margin-top:12px;">
+            ℹ <span><strong>Online Capability Description</strong> ASAM SOVD — l'ECU expose sa propre spec OpenAPI en temps réel. Mode Online vs Offline (fichier YAML statique).</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SECTION 7 — MAPPING
+  ═══════════════════════════════════════ -->
+  <div id="sec-mapping">
+    <div class="section-label">Mapping Dashboard — Swagger SOVD</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          Endpoint Mapping
+          <span style="font-size:.7rem;font-weight:400;color:var(--muted);">— each button calls a documented SOVD endpoint</span>
+        </div>
+        <a id="swaggerFull" href="#" target="_blank" class="btn-swagger">⇗ Full Swagger</a>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="map-tbl">
+          <thead>
+            <tr><th>Action</th><th>Method</th><th>SOVD Endpoint</th><th>UDS Equivalent</th><th>Swagger</th></tr>
+          </thead>
+          <tbody id="mapTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════
+const HOST    = window.location.hostname || '10.207.249.229';
+const PORT    = '8081';
+const BASE    = `http://${HOST}:${PORT}`;
+const SWAGGER = `${BASE}/swagger-ui/index.html`;
+
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('serverAddr').textContent      = `${HOST}:${PORT}`;
+  // Links — null-safe
+  [
+    ['swaggerHref',     SWAGGER],
+    ['swaggerFull',     SWAGGER],
+    ['lnk-faults',      SWAGGER],
+    ['lnk-data',        SWAGGER],
+    ['lnk-logs',        SWAGGER],
+    ['lnk-updates',     SWAGGER],
+    ['lnk-updates-post',SWAGGER],
+    ['lnk-disc',        SWAGGER],
+    ['lnk-disc-engine', SWAGGER],
+    ['lnk-caps',        SWAGGER],
+    ['lnk-speed',       SWAGGER],
+    ['lnk-speed-ev',    SWAGGER],
+  ].forEach(([id, url]) => {
+    const el = document.getElementById(id);
+    if (el) el.href = url;
+  });
+  buildMapping();
+  initChart();
+  refreshFaults();
+
+  // ── faultEcuSelect — recharge faults lors du changement ──
+  const faultEcuSelect = document.getElementById('faultEcuSelect');
+  if (faultEcuSelect) {
+    faultEcuSelect.addEventListener('change', () => refreshFaults());
+  }
+  const updateEcuSelect = document.getElementById('updateEcuSelect');
+  if (updateEcuSelect) {
+    updateEcuSelect.addEventListener('change', () => loadUpdates());
+  }
+
+  // ── logEcuSelect — recharge logs lors du changement ──
+  const logEcuSelect = document.getElementById('logEcuSelect');
+  if (logEcuSelect) {
+    logEcuSelect.addEventListener('change', () => loadLogs());
+  }
+
+  // ── writeEcu selector updates writeId options ──
+  const writeEcu = document.getElementById('writeEcu');
+  const writeId  = document.getElementById('writeId');
+  if (writeEcu && writeId) {
+    writeEcu.addEventListener('change', () => {
+      if (writeEcu.value === '1') {
+        writeId.innerHTML = `
+          <option value="speed">speed</option>
+          <option value="rpm">rpm</option>
+          <option value="fuel_level">fuel_level</option>
+          <option value="temperature">temperature</option>
+          <option value="voltage">voltage</option>`;
+      } else {
+        writeId.innerHTML = `
+          <option value="gear">gear</option>
+          <option value="oil_temp">oil_temp</option>
+          <option value="oil_pressure">oil_pressure</option>
+          <option value="torque">torque</option>
+          <option value="efficiency">efficiency</option>`;
+      }
+    });
+  }
+
+  // ── Auto-highlight nav tab on scroll ──
+  const sections = [
+    'sec-faults', 'sec-data', 'sec-logs',
+    'sec-updates', 'sec-speed', 'sec-discovery', 'sec-mapping'
+  ];
+  const navTabs = document.querySelectorAll('.nav-tab');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = sections.indexOf(entry.target.id);
+        if (idx !== -1) {
+          navTabs.forEach(t => t.classList.remove('active'));
+          navTabs[idx].classList.add('active');
+        }
+      }
+    });
+  }, {
+    rootMargin: '-30% 0px -60% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+});
+
+// ═══════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════
+function toast(msg, ms = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ═══════════════════════════════════════
+//  MAPPING TABLE
+// ═══════════════════════════════════════
+function buildMapping() {
+  const tbody = document.getElementById('mapTbody');
+
+  function groupRow(label, color) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.style.cssText = `padding:7px 16px 5px;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-top:2px solid ${color};border-bottom:1px solid ${color}99;color:${color};background:${color}11;font-family:var(--display)`;
+    td.textContent = label;
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+
+  function dataRow(r) {
+    const tr = document.createElement('tr');
+    const directUrl  = `${BASE}${r.ep}`;
+    const swaggerUrl = r.anchor ? `${SWAGGER}#/${r.anchor}` : SWAGGER;
+    tr.innerHTML = `
+      <td><div class="feat-name">${r.btn}</div><div class="feat-desc">${r.desc}</div></td>
+      <td><span class="method ${r.mcls}">${r.method}</span></td>
+      <td style="font-family:var(--mono);font-size:.69rem;color:var(--accent)">${r.ep}</td>
+      <td style="font-family:var(--mono);font-size:.69rem;color:var(--muted)">UDS ${r.uds}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <a class="sw-link" href="${directUrl}" target="_blank"
+           style="padding:2px 8px;background:var(--accent-bg);border:1px solid rgba(47,91,232,.2);border-radius:4px;">↗ Direct</a>
+        <a class="sw-link" href="${swaggerUrl}" target="_blank"
+           style="padding:2px 8px;background:var(--green-bg);color:var(--green);border:1px solid rgba(10,122,82,.2);border-radius:4px;">↗ Swagger</a>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+
+groupRow('Fault Handling — ECU 1 (Engine)', '#2f5be8');
+  dataRow({ btn:'Get Faults ECU 1',   desc:'All DTCs from Engine ECU',        method:'GET',    mcls:'m-get',    ep:'/ecu/1/faults',              uds:'0x19',         anchor:'ecu1-faults/get_ecu1_faults_ecu_1_faults_get' });
+  dataRow({ btn:'Active Only ECU 1',  desc:'Active faults Engine ECU',        method:'GET',    mcls:'m-get',    ep:'/ecu/1/faults?scope=ACTIVE', uds:'0x19 sub-0x02',anchor:'ecu1-faults/get_ecu1_faults_ecu_1_faults_get' });
+  dataRow({ btn:'Clear Faults ECU 1', desc:'Clear active+pending Engine ECU', method:'DELETE', mcls:'m-delete', ep:'/ecu/1/faults',              uds:'0x14',         anchor:'ecu1-faults/clear_ecu1_faults_ecu_1_faults_delete' });
+
+  groupRow('Fault Handling — ECU 2 (Transmission)', '#6040c0');
+  dataRow({ btn:'Get Faults ECU 2',   desc:'All DTCs from Transmission ECU',  method:'GET',    mcls:'m-get',    ep:'/ecu/2/faults',              uds:'0x19',         anchor:'ecu2-faults/get_ecu2_faults_ecu_2_faults_get' });
+  dataRow({ btn:'Clear Faults ECU 2', desc:'Clear Transmission faults',       method:'DELETE', mcls:'m-delete', ep:'/ecu/2/faults',              uds:'0x14',         anchor:'ecu2-faults/clear_ecu2_faults_ecu_2_faults_delete' });
+
+  groupRow('Data Retrieval — ECU 1', '#2f5be8');
+  dataRow({ btn:'Get All Data ECU 1', desc:'All Engine ECU parameters',       method:'GET', mcls:'m-get', ep:'/ecu/1/data',              uds:'0x22', anchor:'ecu1-data/get_ecu1_data_ecu_1_data_get' });
+  dataRow({ btn:'Get Speed ECU 1',    desc:'Vehicle speed',                   method:'GET', mcls:'m-get', ep:'/ecu/1/data/speed',        uds:'0x22', anchor:'ecu1-data/get_ecu1_speed_ecu_1_data_speed_get' });
+  dataRow({ btn:'SSE Speed ECU 1',    desc:'Speed push 500ms',                method:'SSE', mcls:'m-sse', ep:'/ecu/1/data/speed/events', uds:'0x86', anchor:'ecu1-data/get_ecu1_sse_ecu_1_data_speed_events_get' });
+
+  groupRow('Data Retrieval — ECU 2', '#6040c0');
+  dataRow({ btn:'Get All Data ECU 2', desc:'All Transmission ECU parameters', method:'GET', mcls:'m-get', ep:'/ecu/2/data',             uds:'0x22', anchor:'ecu2-data/get_ecu2_data_ecu_2_data_get' });
+  dataRow({ btn:'Get Gear ECU 2',     desc:'Current gear',                    method:'GET', mcls:'m-get', ep:'/ecu/2/data/gear',        uds:'0x22', anchor:'ecu2-data/get_ecu2_gear_ecu_2_data_gear_get' });
+  dataRow({ btn:'SSE Gear ECU 2',     desc:'Gear push 500ms',                 method:'SSE', mcls:'m-sse', ep:'/ecu/2/data/gear/events', uds:'0x86', anchor:'ecu2-data/get_ecu2_sse_ecu_2_data_gear_events_get' });
+
+  groupRow('Logging', '#0a7a52');
+  dataRow({ btn:'Get Logs ECU 1',   desc:'Engine ECU logs',       method:'GET',    mcls:'m-get',    ep:'/ecu/1/logs', uds:'Logging', anchor:'ecu1-logs/get_ecu1_logs_ecu_1_logs_get' });
+  dataRow({ btn:'Get Logs ECU 2',   desc:'Transmission ECU logs', method:'GET',    mcls:'m-get',    ep:'/ecu/2/logs', uds:'Logging', anchor:'ecu2-logs/get_ecu2_logs_ecu_2_logs_get' });
+  dataRow({ btn:'Clear Logs ECU 1', desc:'Clear Engine logs',     method:'DELETE', mcls:'m-delete', ep:'/ecu/1/logs', uds:'—',       anchor:'ecu1-logs/clear_ecu1_logs_ecu_1_logs_delete' });
+  dataRow({ btn:'Clear Logs ECU 2', desc:'Clear Transmission logs',method:'DELETE',mcls:'m-delete', ep:'/ecu/2/logs', uds:'—',       anchor:'ecu2-logs/clear_ecu2_logs_ecu_2_logs_delete' });
+
+  groupRow('Software Updates (OTA)', '#9a6800');
+  dataRow({ btn:'Get Updates ECU 1', desc:'OTA packages Engine',       method:'GET',  mcls:'m-get',  ep:'/ecu/1/updates', uds:'0x34', anchor:'ecu1-updates/get_ecu1_updates_ecu_1_updates_get' });
+  dataRow({ btn:'Get Updates ECU 2', desc:'OTA packages Transmission', method:'GET',  mcls:'m-get',  ep:'/ecu/2/updates', uds:'0x34', anchor:'ecu2-updates/get_ecu2_updates_ecu_2_updates_get' });
+  dataRow({ btn:'Install ECU 1',     desc:'Trigger OTA ECU 1',         method:'POST', mcls:'m-post', ep:'/ecu/1/updates', uds:'0x34+0x36+0x37', anchor:'ecu1-updates/install_ecu1_update_ecu_1_updates_post' });
+  dataRow({ btn:'Install ECU 2',     desc:'Trigger OTA ECU 2',         method:'POST', mcls:'m-post', ep:'/ecu/2/updates', uds:'0x34+0x36+0x37', anchor:'ecu2-updates/install_ecu2_update_ecu_2_updates_post' });
+
+  groupRow('Discovery & Capabilities', '#0a7080');
+  dataRow({ btn:'List All ECUs',      desc:'SOVD Discovery',              method:'GET', mcls:'m-get', ep:'/ecu',        uds:'§5.1', anchor:'discovery/get_all_ecus_ecu_get' });
+  dataRow({ btn:'ECU 1 Entity',       desc:'Engine ECU HATEOAS links',    method:'GET', mcls:'m-get', ep:'/ecu/1',      uds:'§5.1', anchor:'discovery/get_entity_1_ecu_1_get' });
+  dataRow({ btn:'ECU 2 Entity',       desc:'Transmission ECU links',      method:'GET', mcls:'m-get', ep:'/ecu/2',      uds:'§5.1', anchor:'discovery/get_entity_2_ecu_2_get' });
+  dataRow({ btn:'Capabilities ECU 1', desc:'ECU 1 capability description',method:'GET', mcls:'m-get', ep:'/ecu/1/docs', uds:'§5.2', anchor:'ecu1-capabilities/get_ecu1_caps_ecu_1_docs_get' });
+  dataRow({ btn:'Capabilities ECU 2', desc:'ECU 2 capability description',method:'GET', mcls:'m-get', ep:'/ecu/2/docs', uds:'§5.2', anchor:'ecu2-capabilities/get_ecu2_caps_ecu_2_docs_get' });
+}
+
+// ═══════════════════════════════════════
+//  FAULT HANDLING — Multi-ECU
+// ═══════════════════════════════════════
+function _getFaultUrl(scope) {
+  const ecu = document.getElementById('faultEcuSelect')?.value || 'all';
+  const base = scope ? `?scope=${scope}` : '';
+  if (ecu === 'all') return null; // fetch both
+  return `${BASE}/ecu/${ecu}/faults${base}`;
+}
+
+async function refreshFaults() {
+  toast('Loading faults…');
+  try {
+    const ecu = document.getElementById('faultEcuSelect')?.value || 'all';
+    let allFaults = [];
+    if (ecu === 'all') {
+      const [r1, r2] = await Promise.all([
+        fetch(`${BASE}/ecu/1/faults`).then(r => r.json()),
+        fetch(`${BASE}/ecu/2/faults`).then(r => r.json())
+      ]);
+      allFaults = [...(r1.faults||[]), ...(r2.faults||[])];
+    } else {
+      const res = await fetch(`${BASE}/ecu/${ecu}/faults`);
+      const d = await res.json();
+      allFaults = d.faults || [];
+    }
+    renderFaults({
+      active_faults:    allFaults.filter(f => f.dtc_type === 'ACTIVE'),
+      pending_faults:   allFaults.filter(f => f.dtc_type === 'PENDING'),
+      permanent_faults: allFaults.filter(f => f.dtc_type === 'PERMANENT'),
+      total_faults:     allFaults.length
+    });
+    toast(`${allFaults.length} DTC(s) loaded`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function refreshActive() {
+  toast('Loading active faults…');
+  try {
+    const ecu = document.getElementById('faultEcuSelect')?.value || 'all';
+    let allFaults = [];
+    if (ecu === 'all') {
+      const [r1, r2] = await Promise.all([
+        fetch(`${BASE}/ecu/1/faults`).then(r => r.json()),
+        fetch(`${BASE}/ecu/2/faults`).then(r => r.json())
+      ]);
+      allFaults = [...(r1.faults||[]), ...(r2.faults||[])];
+    } else {
+      const res = await fetch(`${BASE}/ecu/${ecu}/faults`);
+      allFaults = (await res.json()).faults || [];
+    }
+    const active  = allFaults.filter(f => f.dtc_type === 'ACTIVE');
+    const pending = allFaults.filter(f => f.dtc_type === 'PENDING');
+    renderFaults({ active_faults: active, pending_faults: pending, permanent_faults: null, total_faults: active.length + pending.length });
+    toast(`${active.length} active fault(s)`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function refreshPermanent() {
+  toast('Loading permanent faults…');
+  try {
+    const ecu = document.getElementById('faultEcuSelect')?.value || 'all';
+    let allFaults = [];
+    if (ecu === 'all') {
+      const [r1, r2] = await Promise.all([
+        fetch(`${BASE}/ecu/1/faults?scope=permanent`).then(r => r.json()),
+        fetch(`${BASE}/ecu/2/faults?scope=permanent`).then(r => r.json())
+      ]);
+      allFaults = [...(r1.faults||[]), ...(r2.faults||[])];
+    } else {
+      const res = await fetch(`${BASE}/ecu/${ecu}/faults?scope=permanent`);
+      allFaults = (await res.json()).faults || [];
+    }
+    const perm = allFaults.filter(f => f.dtc_type === 'PERMANENT');
+    renderFaults({ active_faults: null, pending_faults: null, permanent_faults: perm, total_faults: perm.length });
+    toast(`${perm.length} permanent fault(s)`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function clearFaults() {
+  const ecu = document.getElementById('faultEcuSelect')?.value || 'all';
+  const label = ecu === 'all' ? 'ECU 1 + ECU 2' : `ECU ${ecu}`;
+  if (!confirm(`Clear active + pending faults for ${label}?\n(Permanent faults kept — UDS 0x14 behaviour)`)) return;
+  try {
+    if (ecu === 'all') {
+      await Promise.all([
+        fetch(`${BASE}/ecu/1/faults`, { method: 'DELETE' }),
+        fetch(`${BASE}/ecu/2/faults`, { method: 'DELETE' })
+      ]);
+    } else {
+      await fetch(`${BASE}/ecu/${ecu}/faults`, { method: 'DELETE' });
+    }
+    await refreshFaults();
+    await refreshFaults();
+    // Vérifier si des permanents ont été supprimés
+    const r1 = await fetch(`${BASE}/ecu/1/faults`).then(r => r.json());
+    const r2 = await fetch(`${BASE}/ecu/2/faults`).then(r => r.json());
+    const permClearable = r1.permanent_clearable || r2.permanent_clearable;
+    if (permClearable) {
+      toast('✓ All faults cleared including PERMANENT (driving cycle complete)');
+    } else {
+      toast('✓ Active + Pending cleared — PERMANENT kept (no driving cycle)');
+    }
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+function renderFaults(d) {
+  const active  = d.active_faults;
+  const pending = d.pending_faults;
+  const perm    = d.permanent_faults;
+  document.getElementById('kActive').textContent  = active  !== null ? active.length  : '—';
+  document.getElementById('kPending').textContent = pending !== null ? pending.length : '—';
+  document.getElementById('kPerm').textContent    = perm    !== null ? perm.length    : '—';
+  document.getElementById('kTotal').textContent   = d.total_faults ?? '—';
+  const all = [
+    ...(active  || []).map(f => ({...f, _type:'active'})),
+    ...(pending || []).map(f => ({...f, _type:'pending'})),
+    ...(perm    || []).map(f => ({...f, _type:'permanent'})),
+  ];
+  const tbody = document.getElementById('faultsTbody');
+  if (!all.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No DTC found</td></tr>`; return; }
+  tbody.innerHTML = all.map(f => {
+    const cls = f._type === 'permanent' ? 'b-perm' : f._type === 'pending' ? 'b-pending' : 'b-active';
+    const ecuId = f.ecu_id || '?';
+    const ecuCls = ecuId === '1' ? 'ecu1-badge' : 'ecu2-badge';
+    return `<tr>
+      <td><span class="badge ${ecuCls}">ECU ${ecuId}</span></td>
+      <td style="font-family:var(--mono);font-size:.74rem;font-weight:600">${f.faultCode || f.code || '—'}</td>
+      <td>${f.description || f.fault_name || '—'}</td>
+      <td>${f.component || f.source || '—'}</td>
+      <td style="font-family:var(--mono);font-size:.74rem">${f.severity ?? '—'}</td>
+      <td><span class="badge ${cls}">${f._type}</span></td>
+      <td style="font-family:var(--mono);font-size:.66rem;color:var(--muted)">${f.timestamp || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+//  DATA RETRIEVAL — Multi-ECU
+// ═══════════════════════════════════════
+const KPI_MAP1 = { speed:'dSpeed', rpm:'dRpm', fuel_level:'dFuel', temperature:'dTemp', voltage:'dVolt' };
+const KPI_MAP2 = { gear:'dGear', oil_temp:'dOilTemp', oil_pressure:'dPressure', torque:'dTorque', efficiency:'dEfficiency' };
+
+async function loadAllData() {
+  toast('Loading ECU data from Redis…');
+  try {
+    const [res1, res2] = await Promise.all([
+      fetch(`${BASE}/ecu/1/data`),
+      fetch(`${BASE}/ecu/2/data`)
+    ]);
+    const list1 = await res1.json();
+    const list2 = await res2.json();
+    const arr1 = Array.isArray(list1) ? list1 : (list1.items || []);
+    const arr2 = Array.isArray(list2) ? list2 : (list2.items || []);
+
+    // Update ECU1 KPIs
+    arr1.forEach(item => {
+      const el = document.getElementById(KPI_MAP1[item.id]);
+      if (el) el.textContent = item.value ?? '—';
+    });
+
+    // Update ECU2 KPIs
+    arr2.forEach(item => {
+      const el = document.getElementById(KPI_MAP2[item.id]);
+      if (el) el.textContent = item.value ?? '—';
+    });
+
+    // Render ECU1 grid
+    document.getElementById('dataGrid1').innerHTML = arr1.length ? arr1.map(item => `
+      <div class="data-card">
+        <div class="data-card-id">${item.id || '—'}</div>
+        <div class="data-card-val">${item.value ?? '—'}</div>
+        <div class="data-card-unit">${item.unit || ''}</div>
+        <div class="data-card-desc">${item.description || ''}</div>
+        <div style="margin-top:4px;display:flex;gap:4px;">
+          <span class="badge b-good">${item.quality || 'good'}</span>
+          <span class="badge ecu1-badge">ECU 1</span>
+        </div>
+      </div>
+    `).join('') : '<div style="color:var(--muted);font-size:.78rem;padding:16px;">No data</div>';
+
+    // Render ECU2 grid
+    document.getElementById('dataGrid2').innerHTML = arr2.length ? arr2.map(item => `
+      <div class="data-card">
+        <div class="data-card-id">${item.id || '—'}</div>
+        <div class="data-card-val">${item.value ?? '—'}</div>
+        <div class="data-card-unit">${item.unit || ''}</div>
+        <div class="data-card-desc">${item.description || ''}</div>
+        <div style="margin-top:4px;display:flex;gap:4px;">
+          <span class="badge b-good">${item.quality || 'good'}</span>
+          <span class="badge ecu2-badge">ECU 2</span>
+        </div>
+      </div>
+    `).join('') : '<div style="color:var(--muted);font-size:.78rem;padding:16px;">No data</div>';
+
+    toast(`ECU1: ${arr1.length} items — ECU2: ${arr2.length} items`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+async function loadEcu1Data() {
+  toast('Loading ECU 1 data…');
+  try {
+    const res  = await fetch(`${BASE}/ecu/1/data`);
+    const list = await res.json();
+    const arr  = Array.isArray(list) ? list : (list.items || []);
+    arr.forEach(item => {
+      const el = document.getElementById(KPI_MAP1[item.id]);
+      if (el) el.textContent = item.value ?? '—';
+    });
+    document.getElementById('dataGrid1').innerHTML = arr.map(item => `
+      <div class="data-card">
+        <div class="data-card-id">${item.id}</div>
+        <div class="data-card-val">${item.value ?? '—'}</div>
+        <div class="data-card-unit">${item.unit || ''}</div>
+        <div class="data-card-desc">${item.description || ''}</div>
+        <div style="margin-top:4px;display:flex;gap:4px;">
+          <span class="badge b-good">${item.quality || 'good'}</span>
+          <span class="badge ecu1-badge">ECU 1</span>
+        </div>
+      </div>`).join('');
+    toast(`ECU 1 — ${arr.length} items loaded`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function loadEcu2Data() {
+  toast('Loading ECU 2 data…');
+  try {
+    const res  = await fetch(`${BASE}/ecu/2/data`);
+    const list = await res.json();
+    const arr  = Array.isArray(list) ? list : (list.items || []);
+    arr.forEach(item => {
+      const el = document.getElementById(KPI_MAP2[item.id]);
+      if (el) el.textContent = item.value ?? '—';
+    });
+    document.getElementById('dataGrid2').innerHTML = arr.map(item => `
+      <div class="data-card">
+        <div class="data-card-id">${item.id}</div>
+        <div class="data-card-val">${item.value ?? '—'}</div>
+        <div class="data-card-unit">${item.unit || ''}</div>
+        <div class="data-card-desc">${item.description || ''}</div>
+        <div style="margin-top:4px;display:flex;gap:4px;">
+          <span class="badge b-good">${item.quality || 'good'}</span>
+          <span class="badge ecu2-badge">ECU 2</span>
+        </div>
+      </div>`).join('');
+    toast(`ECU 2 — ${arr.length} items loaded`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function writeData() {
+  const ecuId = document.getElementById('writeEcu')?.value || '1';
+  const did   = document.getElementById('writeId').value;
+  const val   = parseFloat(document.getElementById('writeVal').value);
+  if (isNaN(val)) { toast('Please enter a valid value'); return; }
+  toast(`Writing ECU ${ecuId} — ${did} = ${val}…`);
+  try {
+    const res = await fetch(`${BASE}/ecu/${ecuId}/data/${did}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: val })
+    });
+    if (res.ok || res.status === 204) {
+      const wr = document.getElementById('writeResult');
+      document.getElementById('writeResultTxt').textContent = `ECU ${ecuId} — ${did} = ${val} written`;
+      wr.classList.add('show');
+      setTimeout(() => wr.classList.remove('show'), 3000);
+      toast(`✓ ECU ${ecuId} — ${did} → ${val}`);
+      await loadAllData();
+    } else { toast(`Error ${res.status}`); }
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// Update writeId options when ECU changes — handled in main DOMContentLoaded above
+
+// ═══════════════════════════════════════
+//  SPEED — Chart.js + SSE
+// ═══════════════════════════════════════
+let speedChart, speedVals = [], speedLbls = [];
+
+function initChart() {
+  const ctx = document.getElementById('speedChart').getContext('2d');
+  speedChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: speedLbls,
+      datasets: [{
+        label: 'Speed km/h', data: speedVals,
+        borderColor: '#2f5be8', backgroundColor: 'rgba(47,91,232,.06)',
+        borderWidth: 2, pointRadius: 0, fill: true, tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 150 },
+      scales: {
+        x: { display: false },
+        y: { min: 0, max: 200, grid: { color: 'rgba(0,0,0,.05)' },
+          ticks: { color: '#7b82a6', font: { family: 'JetBrains Mono', size: 10 } } }
+      },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.y} km/h` } } }
+    }
+  });
+}
+
+function pushSpeed(value) {
+  const t = new Date().toLocaleTimeString('fr-FR');
+  speedVals.push(value); speedLbls.push(t);
+  if (speedVals.length > 60) { speedVals.shift(); speedLbls.shift(); }
+  speedChart.update();
+  document.getElementById('speedVal').textContent = value.toFixed(1);
+  document.getElementById('speedTs').textContent  = 'Last: ' + t;
+}
+
+async function getSpeedOnce() {
+  try {
+    const res = await fetch(`${BASE}/ecu/1/data/speed`);
+    const d   = await res.json();
+    if (d.value === 'ff' || d.status === 'simulator_offline') {
+      document.getElementById('speedVal').textContent = 'N/A';
+      document.getElementById('speedTs').textContent  = '⚠ Simulator offline';
+      document.getElementById('speedVal').style.color = 'var(--red)';
+      document.getElementById('speedTs').textContent  = '⚠ Simulator offline';
+      toast('⚠ ECU simulator not running');
+    } else {
+      document.getElementById('speedVal').style.color = 'var(--accent)';
+      pushSpeed(parseFloat(d.value ?? 0));
+      toast(`Speed: ${d.value} km/h`);
+    }
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+let speedES = null;
+
+function subSpeed() {
+  if (speedES) return;
+  speedES = new EventSource(`${BASE}/ecu/1/data/speed/events`);
+  setSseState(true);
+  document.getElementById('btnSpeedSub').disabled   = true;
+  document.getElementById('btnSpeedUnsub').disabled = false;
+  toast('ResponseOnEvent active — push 500ms');
+  speedES.addEventListener('SPEED_UPDATE', (e) => {
+    try {
+      const p = JSON.parse(e.data);
+      const val = p.data?.value ?? p.value;
+      if (val === 'ff' || val === 'unavailable' || val === null) {
+        document.getElementById('speedVal').textContent = 'N/A';
+        document.getElementById('speedTs').textContent  = '⚠ Simulator offline';
+        document.getElementById('speedVal').style.color = 'var(--red)';
+        // Afficher bande rouge sur le graphique
+        const t = new Date().toLocaleTimeString('fr-FR');
+        speedVals.push(null);
+        speedLbls.push(t);
+        if (speedVals.length > 60) { speedVals.shift(); speedLbls.shift(); }
+        speedChart.update();
+      } else {
+        document.getElementById('speedVal').style.color = 'var(--accent)';
+        pushSpeed(parseFloat(val ?? 0));
+      }
+    } catch {}
+  });
+  speedES.onerror = () => setSseState(false);
+}
+
+function unsubSpeed() {
+  if (speedES) { speedES.close(); speedES = null; }
+  setSseState(false);
+  document.getElementById('btnSpeedSub').disabled   = false;
+  document.getElementById('btnSpeedUnsub').disabled = true;
+  toast('Unsubscribed from speed stream');
+}
+
+function setSseState(on) {
+  const el = document.getElementById('speedSseSt');
+  el.className = 'sse-status' + (on ? ' on' : '');
+  document.getElementById('speedSseLbl').textContent = on ? 'SSE Connected' : 'Disconnected';
+}
+
+// ═══════════════════════════════════════
+//  LOGGING — Multi-ECU
+// ═══════════════════════════════════════
+async function loadLogs(level = null, limit = null) {
+  const useLimit = limit || _logsLimit;
+  const ecu = document.getElementById('logEcuSelect')?.value || 'all';
+  toast(`Loading ${level || 'all'} logs…`);
+  try {
+    let logs = [];
+    let total = 0;
+    if (ecu === 'all') {
+      const lvl = level ? `&level=${level}` : '';
+      const [r1, r2, rt1, rt2] = await Promise.all([
+        fetch(`${BASE}/ecu/1/logs?limit=${useLimit}${lvl}`).then(r => r.json()),
+        fetch(`${BASE}/ecu/2/logs?limit=${useLimit}${lvl}`).then(r => r.json()),
+        fetch(`${BASE}/ecu/1/logs?limit=1000`).then(r => r.json()),
+        fetch(`${BASE}/ecu/2/logs?limit=1000`).then(r => r.json()),
+      ]);
+      logs  = [...(r1.entries||[]), ...(r2.entries||[])];
+      total = (rt1.entries||[]).length + (rt2.entries||[]).length;
+    } else {
+      const lvl = level ? `&level=${level}` : '';
+      const [res, resTotal] = await Promise.all([
+        fetch(`${BASE}/ecu/${ecu}/logs?limit=${useLimit}${lvl}`).then(r => r.json()),
+        fetch(`${BASE}/ecu/${ecu}/logs?limit=1000`).then(r => r.json()),
+      ]);
+      logs  = res.entries || [];
+      total = (resTotal.entries||[]).length;
+    }
+    // Sort by timestamp desc
+    logs.sort((a,b) => (b.timestamp||'').localeCompare(a.timestamp||''));
+    document.getElementById('lTotal').textContent = `${logs.length} / ${total}`;
+    document.getElementById('lInfo').textContent  = logs.filter(l => l.level === 'INFO').length;
+    document.getElementById('lWarn').textContent  = logs.filter(l => l.level === 'WARNING').length;
+    document.getElementById('lErr').textContent   = logs.filter(l => l.level === 'ERROR').length;
+    const tbody = document.getElementById('logsTbody');
+    if (!logs.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty-row">No log entries</td></tr>`; return; }
+    tbody.innerHTML = logs.map(l => {
+      const lvl    = (l.level || 'INFO').toUpperCase();
+      const cls    = lvl === 'WARNING' ? 'b-warning' : lvl === 'ERROR' ? 'b-error' : 'b-info';
+      const ts     = l.timestamp ? l.timestamp.replace('T',' ').substring(0,19) : '—';
+      const ecuId  = l.ecu_id || '?';
+      const ecuCls = ecuId === '1' ? 'ecu1-badge' : 'ecu2-badge';
+      return `<tr>
+        <td style="font-family:var(--mono);font-size:.67rem;color:var(--muted)">${ts}</td>
+        <td><span class="badge ${ecuCls}">ECU ${ecuId}</span></td>
+        <td><span class="badge ${cls}">${lvl}</span></td>
+        <td style="font-family:var(--mono);font-size:.71rem">${l.event || '—'}</td>
+        <td style="font-size:.74rem">${l.detail || '—'}</td>
+        <td style="font-family:var(--mono);font-size:.64rem;color:var(--muted)">${l.source || '—'}</td>
+      </tr>`;
+    }).join('');
+    toast(`${logs.length} log(s) loaded`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function clearLogs() {
+  const ecu = document.getElementById('logEcuSelect')?.value || 'all';
+  const label = ecu === 'all' ? 'ECU 1 + ECU 2' : `ECU ${ecu}`;
+  if (!confirm(`Clear all diagnostic logs for ${label}?`)) return;
+  try {
+    if (ecu === 'all') {
+      await Promise.all([
+        fetch(`${BASE}/ecu/1/logs`, { method: 'DELETE' }),
+        fetch(`${BASE}/ecu/2/logs`, { method: 'DELETE' })
+      ]);
+    } else {
+      await fetch(`${BASE}/ecu/${ecu}/logs`, { method: 'DELETE' });
+    }
+    document.getElementById('logsTbody').innerHTML = `<tr><td colspan="6" class="empty-row">Logs cleared</td></tr>`;
+    ['lTotal','lInfo','lWarn','lErr'].forEach(id => document.getElementById(id).textContent = '0');
+    toast(`Logs cleared for ${label}`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+
+
+// ═══════════════════════════════════════
+//  OTA UPDATES
+// ═══════════════════════════════════════
+let _pollIntervals = {};
+let _logsLimit = 10;  // affiche 10 logs au début
+
+function showMoreLogs() {
+  _logsLimit += 10;
+  document.getElementById('logsLimitLabel').textContent = `showing ${_logsLimit}`;
+  loadLogs();
+}
+
+function showLessLogs() {
+  _logsLimit = Math.max(10, _logsLimit - 10);
+  document.getElementById('logsLimitLabel').textContent = `showing ${_logsLimit}`;
+  loadLogs();
+}
+
+async function loadUpdates() {
+  const ecuId = document.getElementById('updateEcuSelect')?.value || '1';
+  toast(`Loading ECU ${ecuId} updates…`);
+  try {
+    const res     = await fetch(`${BASE}/ecu/${ecuId}/updates`);
+    const d       = await res.json();
+    const updates = d.updates || [];
+    document.getElementById('uTotal').textContent    = updates.length;
+    document.getElementById('uCritical').textContent = updates.filter(u => u.critical).length;
+    document.getElementById('uInstalled').textContent = updates.filter(u => u.status === 'installed').length;
+    if (!updates.length) {
+      document.getElementById('updatesGrid').innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);">No updates available</div>`;
+      return;
+    }
+    document.getElementById('updatesGrid').innerHTML = updates.map(u => `
+      <div class="update-card ${u.critical ? 'critical' : ''}" id="card-${u.id}">
+        <div class="update-header">
+          <div>
+            <div class="update-version">${u.version} ${u.critical ? '<span class="badge b-active" style="margin-left:6px">CRITICAL</span>' : '<span class="badge b-good">STABLE</span>'}</div>
+            <div class="update-desc">${u.description}</div>
+          </div>
+          <button class="btn btn-purple" onclick="installUpdate('${u.id}','${u.version}','${ecuId}')">Install (POST)</button>
+        </div>
+        <div class="update-meta">
+          <span>ID: ${u.id}</span>
+          <span>Size: ${u.size_mb} MB</span>
+          <span>Released: ${u.released_at}</span>
+          <span class="badge ${ecuId==='1'?'ecu1-badge':'ecu2-badge'}">ECU ${ecuId}</span>
+        </div>
+        <div class="progress-wrap" id="prog-${u.id}">
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="fill-${u.id}"></div></div>
+          <div class="progress-label" id="lbl-${u.id}">Installing… 0%</div>
+        </div>
+      </div>
+    `).join('');
+    toast(`${updates.length} update(s) available for ECU ${ecuId}`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function installUpdate(uid, version, ecuId) {
+  ecuId = ecuId || document.getElementById('updateEcuSelect')?.value || '1';
+  toast(`Starting OTA install — ${version} on ECU ${ecuId}…`);
+  try {
+    await fetch(`${BASE}/ecu/${ecuId}/updates`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: uid }) });
+    document.getElementById(`prog-${uid}`).classList.add('show');
+    document.getElementById(`fill-${uid}`).style.width = '0%';
+    document.getElementById(`lbl-${uid}`).textContent  = 'Installing… 0%';
+    const btn = document.querySelector(`#card-${uid} button`);
+    if (btn) { btn.disabled = true; btn.textContent = 'Installing…'; }
+    if (_pollIntervals[uid]) clearInterval(_pollIntervals[uid]);
+    _pollIntervals[uid] = setInterval(() => pollStatus(uid, ecuId), 1500);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function pollStatus(uid, ecuId) {
+  ecuId = ecuId || '1';
+  try {
+    const res = await fetch(`${BASE}/ecu/${ecuId}/updates/${uid}`);
+    if (!res.ok) return;
+    const d = await res.json();
+    const prog = d.progress ?? 0;
+    const fill = document.getElementById(`fill-${uid}`);
+    const lbl  = document.getElementById(`lbl-${uid}`);
+    if (fill) fill.style.width = `${prog}%`;
+    if (d.status === 'installed') {
+      if (lbl) { lbl.textContent = `✓ Installed — ${d.version}`; lbl.className = 'progress-label done'; }
+      clearInterval(_pollIntervals[uid]);
+      delete _pollIntervals[uid];
+      toast(`✓ ${d.version} installed on ECU ${ecuId}!`);
+    } else {
+      if (lbl) lbl.textContent = `Installing… ${prog}%`;
+    }
+  } catch(e) { clearInterval(_pollIntervals[uid]); }
+}
+
+// ═══════════════════════════════════════
+//  NAVIGATION HELPER
+// ═══════════════════════════════════════
+function navTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  event.currentTarget.classList.add("active");
+}
+
+function navigateToSection(sectionId, resourceName) {
+  const section = document.getElementById(sectionId);
+if (section) {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const tabMap = {
+    'sec-faults':    0, 'sec-data':      1,
+    'sec-logs':      2, 'sec-updates':   3,
+    'sec-speed':     4, 'sec-discovery': 5, 'sec-mapping': 6
+  };
+  const tabs = document.querySelectorAll('.nav-tab');
+  const idx  = tabMap[sectionId];
+  if (tabs[idx]) tabs[idx].classList.add('active');
+  const autoLoad = {
+    'faults':  () => refreshFaults(),
+    'data':    () => loadAllData(),
+    'logs':    () => loadLogs(),
+    'updates': () => loadUpdates(),
+    'docs':    () => loadCapabilities()
+  };
+  if (autoLoad[resourceName]) setTimeout(() => autoLoad[resourceName](), 450);
+  toast(`→ ${resourceName}`);
+}
+
+// ═══════════════════════════════════════
+//  DISCOVERY — Multi-ECU
+// ═══════════════════════════════════════
+async function loadDiscovery() {
+  toast('Discovering ECU entities…');
+  try {
+    const collection = await fetch(`${BASE}/ecu`).then(r => r.json());
+    const ecus = collection.items || [];
+
+    // Fetch details for each ECU
+    const ecuDetails = await Promise.all(
+      ecus.map(e => fetch(`${BASE}${e.href}`).then(r => r.json()))
+    );
+
+    const resourceMeta = {
+      faults:  { section: 'sec-faults',    icon: '⚠',  color: 'var(--red)',    label: 'faults'  },
+      data:    { section: 'sec-data',      icon: '📊', color: 'var(--accent)', label: 'data'    },
+      logs:    { section: 'sec-logs',      icon: '📋', color: 'var(--green)',  label: 'logs'    },
+      updates: { section: 'sec-updates',   icon: '⬆',  color: 'var(--purple)', label: 'updates' },
+      docs:    { section: 'sec-discovery', icon: '📄', color: 'var(--teal)',   label: 'docs'    },
+    };
+
+    const ecuCards = ecuDetails.map((entity, idx) => {
+      const ecuId  = ecus[idx].id;
+      const ecuCls = ecuId === '1' ? 'ecu1-badge' : 'ecu2-badge';
+      const icon   = ecuId === '1' ? '🔧' : '⚙';
+
+      const resourceKeys = ['faults','data','logs','updates','docs'].filter(k => entity[k]);
+      const resources = resourceKeys.map(k => {
+        const meta = resourceMeta[k];
+        return `<a class="res-link" data-section="${meta.section}" data-resource="${k}"
+                   style="cursor:pointer;border-color:${meta.color}22;color:${meta.color};background:${meta.color}11;"
+                   title="Navigate → ${k}">
+                  ${meta.icon} ${meta.label} <span style="opacity:.6;font-size:.6rem">→</span>
+                </a>`;
+      }).join('');
+
+      return `
+        <div class="entity-card" style="margin-bottom:12px;">
+          <div class="entity-header">
+            <div class="entity-icon">${icon}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="badge ${ecuCls}">ECU ${ecuId}</span>
+                <span class="entity-id">ecu / ${ecuId}</span>
+              </div>
+              <div class="entity-name">${entity.name || ecus[idx].name}</div>
+              <div class="entity-standard">${entity.sovd_standard || 'ASAM SOVD V1.0.0'}</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:600;">
+              Available Resources — click to navigate ↓
+            </div>
+            <div class="resource-links">${resources}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Collection summary
+    const collectionHtml = ecus.map(i => `
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+        <span class="badge ${i.id === '1' ? 'ecu1-badge' : 'ecu2-badge'}">ECU ${i.id}</span>
+        <span style="font-size:.72rem;color:var(--muted)">${i.name || ''}</span>
+        <a href="${BASE}${i.href}" target="_blank"
+           style="margin-left:auto;font-family:var(--mono);font-size:.64rem;color:var(--accent);text-decoration:none;">
+          ↗ ${i.href}
+        </a>
+      </div>
+    `).join('');
+
+    document.getElementById('discoveryCard').innerHTML = `
+      ${ecuCards}
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">
+        <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:600;">
+          Collection — GET /ecu (${ecus.length} ECUs)
+        </div>
+        ${collectionHtml}
+      </div>
+    `;
+
+    document.querySelectorAll('.res-link[data-section]').forEach(el => {
+      el.addEventListener('click', () => {
+        navigateToSection(el.dataset.section, el.dataset.resource);
+      });
+    });
+
+    toast(`${ecus.length} ECU(s) discovered ✓`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+// ═══════════════════════════════════════
+//  CAPABILITIES
+// ═══════════════════════════════════════
+async function loadCapabilities() {
+  toast('Loading capability description…');
+  try {
+    const [d1, d2] = await Promise.all([
+      fetch(`${BASE}/ecu/1/docs?include-schema=false`).then(r => r.json()),
+      fetch(`${BASE}/ecu/2/docs?include-schema=false`).then(r => r.json())
+    ]);
+
+    // Boutons Full Schema
+    const btnSchema = document.getElementById('btnFullSchema');
+    btnSchema.href = `${BASE}/ecu/1/docs?include-schema=true`;
+    btnSchema.textContent = '⇗ Full Schema ECU 1';
+    btnSchema.style.display = 'inline-flex';
+    let btn2 = document.getElementById('btnFullSchema2');
+    if (!btn2) {
+      btn2 = document.createElement('a');
+      btn2.id = 'btnFullSchema2';
+      btn2.target = '_blank';
+      btn2.className = 'btn-schema';
+      btnSchema.parentNode.appendChild(btn2);
+    }
+    btn2.href = `${BASE}/ecu/2/docs?include-schema=true`;
+    btn2.textContent = '⇗ Full Schema ECU 2';
+    btn2.style.display = 'inline-flex';
+
+    const card = (d, id) => {
+      const ecuCls = id === '1' ? 'ecu1-badge' : 'ecu2-badge';
+      const color  = id === '1' ? 'var(--accent)' : 'var(--purple)';
+
+      const dataBadges = (d.data_ids || []).map(did =>
+        `<span style="font-family:var(--mono);font-size:.62rem;padding:2px 8px;border-radius:4px;background:var(--surface3);color:var(--muted);border:1px solid var(--border);">${did}</span>`
+      ).join('');
+
+      const epList = (d.endpoints || []).map(ep => {
+        const method = ep.split(' ')[0];
+        const path   = ep.split(' ')[1];
+        const mcls   = method === 'GET' ? 'm-get' : method === 'POST' ? 'm-post' :
+                       method === 'DELETE' ? 'm-delete' : 'm-put';
+        const url = `${BASE}${path.replace('{data_id}','speed')}`;
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);">
+          <span class="method ${mcls}" style="min-width:52px;text-align:center">${method}</span>
+          <a href="${url}" target="_blank" style="font-family:var(--mono);font-size:.68rem;color:var(--accent);text-decoration:none;">${path}</a>
+        </div>`;
+      }).join('');
+
+      return `
+        <div class="capabilities-card" style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span class="badge ${ecuCls}">ECU ${id}</span>
+            <span style="font-size:.82rem;font-weight:700;color:var(--text)">${d.name}</span>
+            <span style="font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-left:auto">${d.config_source}</span>
+          </div>
+          <div class="cap-divider"></div>
+          <div class="cap-row" style="margin-top:8px;">
+            <span class="cap-label">Mode</span>
+            <span class="mode-badge"><div class="dot dot-green"></div>online</span>
+          </div>
+          <div class="cap-row">
+            <span class="cap-label">Endpoints</span>
+            <span style="font-family:var(--mono);font-size:.78rem;font-weight:700;color:${color}">${d.endpoints_count}</span>
+          </div>
+          <div style="margin-top:10px;">
+            <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:600;">Data Identifiers</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">${dataBadges}</div>
+          </div>
+          <div style="margin-top:10px;">
+            <div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:600;">API Endpoints — click to test</div>
+            <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;padding:4px 10px;">${epList}</div>
+          </div>
+        </div>`;
+    };
+
+    document.getElementById('capabilitiesCard').innerHTML = card(d1,'1') + card(d2,'2');
+    toast('Capabilities loaded ✓');
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function viewConfig(ecuId) {
+  toast(`Loading ECU ${ecuId} config…`);
+  try {
+    const res = await fetch(`${BASE}/ecu/${ecuId}/config`);
+    const d   = await res.json();
+    const existing = document.getElementById('configModal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'configModal';
+    modal.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,18,37,.6);z-index:999;display:flex;align-items:center;justify-content:center;`;
+    modal.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:700px;max-height:80vh;overflow:hidden;box-shadow:0 8px 32px rgba(15,18,37,.2);display:flex;flex-direction:column;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge ${ecuId==1?'ecu1-badge':'ecu2-badge'}">ECU ${ecuId}</span>
+            <span style="font-weight:700;font-size:.85rem;">ecu${ecuId}_config.yaml</span>
+          </div>
+          <button onclick="document.getElementById('configModal').remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted)">✕</button>
+        </div>
+        <div style="overflow-y:auto;padding:16px 20px;">
+          <pre style="font-family:var(--mono);font-size:.72rem;color:var(--text2);line-height:1.7;white-space:pre-wrap;margin:0;">${JSON.stringify(d, null, 2)}</pre>
+        </div>
+      </div>`;
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.body.appendChild(modal);
+    toast(`ECU ${ecuId} config loaded ✓`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+</script>
+</body>
+</html>

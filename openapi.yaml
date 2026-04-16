@@ -1,0 +1,4959 @@
+openapi: 3.1.0
+info:
+  contact:
+    url: https://www.asam.net/project-detail/sovd-service-oriented-vehicle-diagnostics/
+  description: Definition of ASAM SOVD API
+  license:
+    name: Licensing Terms for Grant of Rights to Use ASAM Products
+    url: https://www.asam.net/license/
+  title: Service-Oriented Vehicle Diagnostic API
+  version: 1.0.0
+servers:
+- url: https://sovd.server/v1
+tags:
+- description: Methods for data resource read / write access
+  name: data-retrieval
+- description: Methods for configuration
+  name: configurations
+- description: Methods for handling of bulk-data
+  name: bulk-data
+- description: Methods for logging
+  name: logging
+- description: Methods for locking
+  name: locking
+- description: Methods for access to cpability description content
+  name: capabilities
+- description: Methods for fault handling
+  name: fault-handling
+- description: Methods for software updates
+  name: updates
+- description: Methods for discovering of entities and resources
+  name: discovery
+- description: Methods for control of operations
+  name: operations-control
+- description: Methods for support of target modes
+  name: target-modes
+paths:
+  /{any-path}/docs:
+    get:
+      description: "For entities, resources, and resource collections, a corresponding\
+        \ online capability description can be requested at the SOVD API. The resulting\
+        \ online capability description is a self-contained, valid OpenAPI specification.\
+        \ The description contains information which refers to the creation, reading,\
+        \ updating or deleting of the respective element and its direct child elements\
+        \ as defined by the SOVD standard. An online capability description is requested\
+        \ for a data resource /{entity-path}/data/{data-id} via GET /{entity-path}/data/{data-id}/docs.\
+        \ For example, to enrich the responses with additional details such as the\
+        \ underlying schema of the response using the “include-schema” query parameter\
+        \ on the request. Moreover, for each supported HTTP method all defined HTTP\
+        \ response status codes are documented together with the data model of the\
+        \ resulting response payloads."
+      parameters:
+      - description: "Path to entity, resource or resource collection for which to\
+          \ request the online capability description."
+        explode: false
+        in: path
+        name: any-path
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.yaml
+          description: The online capability description of the underlying resource
+            in form of an OpenAPI specification in JSON document format.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - capabilities
+  /{entity-collection}/{entity-id}/data-categories:
+    get:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data_categories_get_200_response'
+          description: Data categories provided by an entity.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+  /{entity-collection}/{entity-id}/data-groups:
+    get:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data_groups_get_200_response'
+          description: Retrieve groups supported by a data resource collection.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+  /{entity-collection}/{entity-id}/data:
+    get:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "Filters the available elements based on the group they belong\
+          \ to. If an element belongs to multiple groups, it is included if the group\
+          \ is part of these multiple groups."
+        explode: true
+        in: query
+        name: groups
+        required: false
+        schema:
+          title: id
+          type: string
+        style: form
+      - description: Filters the available elements based on their category
+        explode: true
+        in: query
+        name: category
+        required: false
+        schema:
+          items:
+            example: currentData
+            pattern: "^[A-Za-z0-9_-]+$"
+            type: string
+          type: array
+        style: form
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data_get_200_response'
+          description: Retrieve list of all data provided by the entity.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+  /{entity-collection}/{entity-id}/data/{data-id}:
+    get:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The identifier for the data resource
+        explode: false
+        in: path
+        name: data-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response'
+          description: Read single data value from an entity.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+    put:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The identifier for the data resource
+        explode: false
+        in: path
+        name: data-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__put_request'
+        description: "Request: Write a data value data to an entity"
+        required: true
+      responses:
+        "204":
+          description: Data written.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response_errors_inner'
+          description: |
+            The request body does not contain all required parameter values or the signature for the provided values is invalid.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+  /{entity-collection}/{entity-id}/data-lists:
+    get:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data_groups_get_200_response'
+          description: Retrieve list of all data-lists provided by the entity.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+    post:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__data_lists_post_request'
+        description: "Request: Creating a data list for reading multiple data values\
+          \ at once from an entity"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data_lists_post_201_response'
+          description: Creating a data list for reading multiple data values.
+          headers:
+            Location:
+              description: URI of the created data list.
+              explode: false
+              schema:
+                format: uri-reference
+                type: string
+              style: simple
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+  /{entity-collection}/{entity-id}/data-lists/{data-list-id}:
+    delete:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The identifier for the data-list resource
+        explode: false
+        in: path
+        name: data-list-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+    get:
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The identifier for the data-list resource
+        explode: false
+        in: path
+        name: data-list-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data_lists__data_list_id__get_200_response'
+          description: Read multiple data values at once from an entity using a data
+            list.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - data-retrieval
+  /{entity-collection}:
+    get:
+      description: This method provides the list of contained entities for each requested
+        entity collection
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection__get_200_response'
+          description: Response Body - Discover contained entities of entity collections
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - discovery
+  /areas/{area-id}/subareas:
+    get:
+      description: This method provides the list of sub-entities for each Area.
+      parameters:
+      - description: Id of an requested area
+        explode: false
+        in: path
+        name: area-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection__get_200_response'
+          description: Response Body - Discover contained entities of entity collections
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - discovery
+  /components/{component-id}/subcomponents:
+    get:
+      description: This method provides the list of sub-entities for each Component.
+      parameters:
+      - description: Id of an requested component
+        explode: false
+        in: path
+        name: component-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection__get_200_response'
+          description: Response Body - Discover contained entities of entity collections
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - discovery
+  /areas/{area-id}/related-components:
+    get:
+      description: This method provides the list of related Components of an Area
+      parameters:
+      - description: Id of an requested area
+        explode: false
+        in: path
+        name: area-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_areas__area_id__related_components_get_200_response'
+          description: Response Body - Discover contained entities of entity collections
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - discovery
+  /components/{component-id}/related-apps:
+    get:
+      description: This method provides the list of related app present on a component
+      parameters:
+      - description: Id of an requested component
+        explode: false
+        in: path
+        name: component-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_areas__area_id__related_components_get_200_response'
+          description: Response Body - Discover contained entities of entity collections
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - discovery
+  /{entity-collection}/{entity-id}:
+    get:
+      description: This method returns the capabilities of an entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__get_200_response'
+          description: The response body contains a property for each supported resource
+            and related collection.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - discovery
+  /{entity-collection}/{entity-id}/configurations:
+    get:
+      description: Provides the configurations provided by an entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__configurations_get_200_response'
+          description: The request was successful
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - configurations
+  /{entity-collection}/{entity-id}/configurations/{configuration-id}:
+    get:
+      description: "This method is used to read a configuration from an entity, which\
+        \ can either be * bulk data or * parameter data (MIME type: application/json)\
+        \ The SOVD standard follows the server-driven content negotiation where the\
+        \ client defines its preferences using the Accept request header. If no Accept\
+        \ request header is provided, the SOVD server returns a default representation."
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The identifier for the configuration
+        explode: false
+        in: path
+        name: configuration-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                id: ALKConfig
+                data:
+                  MaximumSpeed: 150
+                  MinimumDistanceToLine: 15
+                  EmergencyLaneDistanceToLine: 5
+                schema:
+                  type: object
+                  properties:
+                    MaximumSpeed:
+                      type: integer
+                      format: int32
+                      minimum: 0
+                      maximum: 250
+                      x-sovd-unit:
+                        display_name: km/h
+                        physical_dimension:
+                          length: 1
+                          time: -1
+                    MinimumDistanceToLine:
+                      type: number
+                      format: float
+                      minimum: 10
+                      maximum: 20
+                      x-sovd-unit:
+                        display_name: cm
+                        physical_dimension:
+                          length: 1
+                    EmergencyLaneDistanceToLine:
+                      type: number
+                      format: float
+                      minimum: 5
+                      maximum: 10
+                      x-sovd-unit:
+                        display_name: cm
+                        physical_dimension:
+                          length: 1
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data_lists__data_list_id__get_200_response_items_inner'
+            '*/*':
+              examples:
+                FormData:
+                  description: "Example using \"Content-Type: multipart/form-data;\
+                    \ boundary=formdataboundary\""
+                  value: |-
+                    --formdataboundary Content-Disposition: form-data; name="signature" Content-Type: application/json { "signature": "84e0982a082024fac464bc5eb69c0745", }
+                    --formdataboundary Content-Disposition: form-data; name="ObjectRecognitionModel"; Content-Type: application/octet-stream [4D61792074686520666F726365206265207769746820796F75210D0A] --formdataboundary
+              schema:
+                description: "The content of the response body is OEM specific. Depending\
+                  \ on the implementation, the transferred file can use multipart/signed,\
+                  \ multipart/form-data with security parameters in a JSON object,\
+                  \ or simply application/octet-stream (if it is not confidential\
+                  \ information)."
+                format: binary
+                type: string
+          description: "Response: Read Configurations"
+        "406":
+          description: "bulk data: The configuration cannot be provided in the requested\
+            \ MIME type. parameter data: The configuration cannot be provided as parameter\
+            \ data, i.e., the configuration cannot be provided as JSON."
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - configurations
+    put:
+      description: "This method is used to write a configuration to an entity, which\
+        \ can either be • bulk data, or • parameter data (MIME type: application/json)\
+        \ The SOVD client shall tell the SOVD server in the Content-Type header, which\
+        \ MIME type is written to it."
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The identifier for the configuration
+        explode: false
+        in: path
+        name: configuration-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__configurations__configuration_id__put_request'
+          '*/*':
+            examples:
+              FormData:
+                description: "Example using \"Content-Type: multipart/form-data; boundary=formdataboundary\""
+                value: |-
+                  --formdataboundary Content-Disposition: form-data; name="signature" Content-Type: application/json {
+                    "signature": "84e0982a082024fac464bc5eb69c0745",
+                  }
+                  --formdataboundary Content-Disposition: form-data; name="ObjectRecognitionModel"; Content-Type: application/octet-stream [4CD563172A936520162652AA0CC6C9746D82020F7746865206A66F2726F7B96F7521] --formdataboundary
+            schema:
+              description: "The content of the request body is OEM specific. Depending\
+                \ on the implementation, the transferred file can use multipart/signed,\
+                \ multipart/form-data with security parameters in a JSON object, or\
+                \ simply application/octet-stream (if it is not confidential information)."
+              format: binary
+              type: string
+        description: "Request: Write a data value data to an entity"
+        required: true
+      responses:
+        "204":
+          description: Configuration written.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response_errors_inner'
+          description: The request body does either not contain all required parameter
+            values or the signature for the provided values is wrong. (only applicable
+            for writing parameter data)
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: "Unable to write configuration due to unsatisfied precondition.\
+            \ E.g., after satisfying precondition “vehicle not in motion” this should\
+            \ be possible."
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - configurations
+  /{entity-collection}/{entity-id}/operations:
+    get:
+      description: This method returns all available operations defined for the given
+        entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Specifies whether operations which require a proximity proof
+          are returned or not. The default is true.
+        explode: true
+        in: query
+        name: include-proximity-proof
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations_get_200_response'
+          description: The request was successful
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - operations-control
+  /{entity-collection}/{entity-id}/operations/{operation-id}:
+    get:
+      description: This method returns all the details on the specified operation
+        of the given entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation
+        explode: false
+        in: path
+        name: operation-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__get_200_response'
+          description: The request was successful
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - operations-control
+      x-sovd-asynchronous-execution: true
+  /{entity-collection}/{entity-id}/operations/{operation-id}/executions:
+    get:
+      description: This method returns currently existing executions of the given
+        operation.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation
+        explode: false
+        in: path
+        name: operation-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_get_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - operations-control
+    post:
+      description: "Start Execution of an Operation An operation may support multiple\
+        \ executions in parallel. If this is not supported, this method will return\
+        \ an error if an operation with the same operation-id is already being executed.\
+        \ A successfully started operation is added to the executions collection if\
+        \ it is executed asynchronously. After the asynchronous execution has been\
+        \ finished, the execution resource remains existent and an SOVD client can\
+        \ receive the status. However, the status of the execution cannot be queried\
+        \ indefinitely as an SOVD server implementation may remove the resource, e.g.,\
+        \ upon SOVD server restart."
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation
+        explode: false
+        in: path
+        name: operation-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_request'
+        description: "Request: Start execution of an operation"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_200_response'
+          description: "The operation returned immediately, and the response body\
+            \ contains the final result of the operation (“synchronous execution”\
+            )."
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_202_response'
+          description: The execution of the operation has been triggered by the SOVD
+            server. The successful response code does not indicate that the operation
+            has been started successfully. An SOVD client would then use the method
+            for retrieving the status to request the status of this particular execution
+            instance of the operation (“asynchronous execution”).
+          headers:
+            Location:
+              description: "The response for status code 202 includes the following\
+                \ header to redirect the SOVD client for requesting the status: Location:\
+                \ /{entity-path}/operations/{operation-id}/executions/{execution-id}"
+              explode: false
+              schema:
+                format: uri-reference
+                type: string
+              style: simple
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: "The method is currently not available, e.g., because the operation\
+            \ is still executing."
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - operations-control
+  /{entity-collection}/{entity-id}/operations/{operation-id}/executions/{execution-id}:
+    delete:
+      description: "This method terminates the execution of the operation and removes\
+        \ it, and the status of the operation can no longer be requested."
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation
+        explode: false
+        in: path
+        name: operation-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation execution
+        explode: false
+        in: path
+        name: execution-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions__execution_id__delete_request'
+        description: "Request: Stop the execution of an operation"
+        required: true
+      responses:
+        "204":
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - operations-control
+    get:
+      description: This method returns the current status of the operation execution.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation
+        explode: false
+        in: path
+        name: operation-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation execution
+        explode: false
+        in: path
+        name: execution-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions__execution_id__get_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - operations-control
+    put:
+      description: This method executes the given capability on the provided operation.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation
+        explode: false
+        in: path
+        name: operation-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the operation execution
+        explode: false
+        in: path
+        name: execution-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions__execution_id__put_request'
+        description: "Request: Support for execute / freeze / reset and OEM-specific\
+          \ capabilities"
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_202_response'
+          description: The execution of the capability has been triggered by the SOVD
+            server. The successful response code does not indicate that the operation
+            has executed the capability successfully.
+          headers:
+            Location:
+              description: "The response for status code 202 includes the following\
+                \ header to redirect the SOVD client for requesting the status: Location:\
+                \ /{entity-path}/operations/{operation-id}/executions/{execution-id}"
+              explode: false
+              schema:
+                format: uri-reference
+                type: string
+              style: simple
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - operations-control
+      x-sovd-capabilities:
+      - execute
+      - freeze
+      - reset
+  /{entity-collection}/{entity-id}/modes:
+    get:
+      description: This method returns all available modes defined for the given entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__modes_get_200_response'
+          description: The request was successful
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - target-modes
+  /{entity-collection}/{entity-id}/modes/{mode-id}:
+    $ref: "./modes/modes.yaml#/paths/~1%7Bentity-collection}~1%7Bentity-id%7D~1modes~1%7Bmode-id%7D"
+  /{entity-collection}/{entity-id}/logs/entries:
+    get:
+      description: This method provides the log information aggregated by that entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: severity
+        required: false
+        schema:
+          description: The severity specifies the log-level for the given context.
+          enum:
+          - fatal
+          - error
+          - warn
+          - info
+          - debug
+          title: severity
+          type: string
+        style: form
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                items:
+                - timestamp: 2021-07-20T00:00:04.387819Z
+                  context:
+                    type: RFC5424
+                    host: Linux
+                    process: systemd
+                    pid: 1
+                  severity: info
+                  msg: Closed D-Bus User Message Bus Socket
+                  href: https://sovd.server/v1/components/DrivingComputer/bulk-data/logs/server.log
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__logs_entries_get_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - logging
+  /{entity-collection}/{entity-id}/logs/config:
+    delete:
+      description: This method resets the current configuration to its default.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Configuration has been reset successfully.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: The SOVD client tried to reset a configuration which does not
+            exist.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - logging
+    get:
+      description: "This method returns an array of configured SOVD LogConfiguration\
+        \ elements, specifying the different contexts for which a specific log configuration\
+        \ was created with the method Configure SOVD Logging."
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                contexts:
+                - context:
+                    type: RFC5424
+                    host: Linux
+                    process: systemd
+                    pid: 1
+                  severity: info
+                - context:
+                    type: AUTOSAR_DLT
+                    session: SES01
+                    session_id: 0x0001
+                    application_id: WindowControl
+                    context_id: STD0
+                    message_id: msg000012
+                  severity: info
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__logs_config_get_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - logging
+    put:
+      description: This method configures the log aggregation.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            example:
+              items:
+              - context:
+                  type: RFC5424
+                  host: Linux
+                  process: systemd
+                severity: warn
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__logs_config_put_request'
+        description: Request Body - Configure SOVD logging
+        required: true
+      responses:
+        "204":
+          description: The configuration was accepted.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: Invalid configuration provided
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - logging
+  /{entity-collection}/{entity-id}/locks:
+    get:
+      description: The method returns the acquired locks for the given entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__locks_get_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - locking
+    post:
+      description: "This method acquires a lock from the SOVD server for the given\
+        \ entity to reserve its resources for exclusive access of a single SOVD client,\
+        \ i.e., prevent other SOVD clients from operating on the resources in parallel.\
+        \ Any further requests against the SOVD API towards controlling an operation\
+        \ (actuators, routines, and input control), e.g., start the execution of an\
+        \ operation, is rejected by the SOVD server if the required lock is not acquired\
+        \ by the same SOVD client. Once the lock is not required anymore, the SOVD\
+        \ client can delete the created lock resource by a corresponding DELETE request.\
+        \ In addition, an SOVD client shall provide a relative expiration time after\
+        \ which the SOVD server should release the lock automatically. The SOVD server\
+        \ might reject the requested expiration time if it is too long. As a result,\
+        \ the SOVD server deletes the corresponding lock resource."
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__locks_post_request'
+        description: Request body - Acquire a lock on an entity
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__locks_post_201_response'
+          description: The SOVD server has successfully created a new lock resource
+            and acquired a lock on all relevant resources.
+          headers:
+            Location:
+              description: "The following header redirects the SOVD client for requesting\
+                \ the status: Location: /{entity-path}/locks/{lock-id}"
+              example: https://sovd.server/v1/components/PowerSteering/locks/15c3e824-8278-44e1-b0b2-3bc16e4522f2
+              explode: false
+              schema:
+                format: uri-reference
+                type: string
+              style: simple
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: The SOVD server rejected the creation of the lock resource.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - locking
+  /{entity-collection}/{entity-id}/locks/{lock-id}:
+    delete:
+      description: This method releases an acquired lock by deleting the created lock
+        resource.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The resource identifier of the lock resource to be deleted.
+        explode: false
+        in: path
+        name: lock-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: The request was successful.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: The SOVD server rejected the extension of the lock resource.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - locking
+    get:
+      description: The method returns all the details on the specified lock of the
+        given entity. For extending the expiration of a lock the method described
+        in 6.11.5 has to be invoked.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The resource identifier of the lock resource to be requested.
+        explode: false
+        in: path
+        name: lock-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__locks__lock_id__get_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - locking
+    put:
+      description: This method extends an acquired lock by providing a new expiration
+        time. The extension is only valid for the SOVD client that has already acquired
+        the corresponding lock.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier of a previous lock owned by the SOVD client.
+        explode: false
+        in: path
+        name: lock-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/__entity_collection___entity_id__locks_post_request'
+        description: Request body - Acquire a lock on an entity
+        required: true
+      responses:
+        "204":
+          description: The request was successful.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: The SOVD server rejected the extension of the lock resource.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - locking
+  /{entity-collection}/{entity-id}/bulk-data:
+    get:
+      description: This method provides the list of bulk data categories supported
+        by an entity. The result contains all available and based on the authorization
+        accesible bulk data categories. Certain bulk data categories are hidden based
+        on the user’s authorization.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                items:
+                - maps
+                - pois
+                - logs
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__bulk_data_get_200_response'
+          description: The bulk data categories supported by the entity.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - bulk-data
+  /{entity-collection}/{entity-id}/bulk-data/{category}:
+    $ref: "./bulkdata/bulkdata.yaml#/paths/~1{entity-collection}~1{entity-id}~1bulk-data~1{category}"
+  /{entity-collection}/{entity-id}/bulk-data/{category}/{bulk-data-id}:
+    $ref: "./bulkdata/bulkdata.yaml#/paths/~1{entity-collection}~1{entity-id}~1bulk-data~1{category}~1{bulk-data-id}"
+  /updates:
+    post:
+      description: "The method registers a new update at the SOVD server which can\
+        \ be installed afterwards. After creating the update, the SOVD client has\
+        \ to use the methods described before for installing the update (automated\
+        \ or prepare & execute)."
+      parameters:
+      - description: OEM-specific
+        explode: false
+        in: header
+        name: Content-Type
+        required: false
+        schema:
+          title: id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: "Additional OEM-specific information describing the environment\
+                \ of the system at the time of setting the fault. Condition: Only\
+                \ set if the fault provides the requested information."
+              example: null
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/_updates_post_201_response'
+          description: The request was successful.
+          headers:
+            Location:
+              description: "The URI to the newly created example. <br> /{entity-path}/updates/{update-package-id}/status"
+              explode: false
+              schema:
+                format: uri
+                type: string
+              style: simple
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+  /{entity-collection}/{entity-id}/updates:
+    get:
+      description: The method returns the available updates for the entity.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Defines the version which is requested by the SOVD client. This
+          version can be a specific version or a version pattern.
+        explode: true
+        in: query
+        name: target-version
+        required: false
+        schema:
+          title: id
+          type: string
+        style: form
+      - description: "Defines from where the update is requested, e.g., inside a workshop\
+          \ or by an OTA update request. Default: remote"
+        explode: true
+        in: query
+        name: origin
+        required: false
+        schema:
+          $ref: '#/components/schemas/__entity_collection___entity_id__updates_get_origin_parameter'
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__updates_get_200_response'
+          description: Update package identifier
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+  /{entity-collection}/{entity-id}/updates/{update-package-id}:
+    delete:
+      description: The method deletes an update package from SOVD server. The resource
+        is afterwards not available anymore.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the update package
+        explode: false
+        in: path
+        name: update-package-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: The request was successful.
+        "405":
+          description: Deleting is not foreseen for an autonomous update-package-id.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+    get:
+      description: The method returns detailed information for a given update package.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the update package
+        explode: false
+        in: path
+        name: update-package-id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__updates__update_package_id__get_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+  /{entity-collection}/{entity-id}/updates/{update-package-id}/automated:
+    put:
+      description: "The method starts the automated installation of the update package.\
+        \ For this scenario, the SOVD server and the OEM’s backend have full control\
+        \ over the update process and decide which action can be taken when. The method\
+        \ returns immediately and redirects the SOVD client to a method for requesting\
+        \ the status and progress of the installation."
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the update package
+        explode: false
+        in: path
+        name: update-package-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "202":
+          description: "If no error is detected immediately (e.g., because the update\
+            \ package does not exist)"
+          headers:
+            Location:
+              description: "The URI to the newly created example. <br> /{entity-path}/updates/{update-package-id}/status"
+              explode: false
+              schema:
+                format: uri
+                type: string
+              style: simple
+        "409":
+          content:
+            application/json:
+              examples:
+                not_supported:
+                  value:
+                    error_code: update-automated-not-supported
+                    message: The package cannot be installed automatically
+                ongoing:
+                  value:
+                    error_code: update-process-in-progress
+                    message: An update is already in preparation
+                    parameters:
+                      key: id
+                      value: Identifier of update
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_200_response_error'
+          description: An update is already in installation and not yet done or aborted.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+  /{entity-collection}/{entity-id}/updates/{update-package-id}/execute:
+    put:
+      description: |-
+        The method starts the installation and activation of the update package. As part of this step the following tasks are performed for example:
+          - Validation if the update package is still installable (e.g., checking the software versions of the updated entities)
+          - Installation of the update on all updated entities
+          - Configuration of the entities
+          - Execution of specific post install actions
+          - Activation of the update (e.g., by switching to B-memory)
+          - Rollback of update in case of an error
+
+        The method returns immediately and redirects the SOVD client to a method for requesting the status and progress of the installation. After the update has been finished, the resource for the update package (and its sub-resources like status) remains existent and an SOVD client can receive the status of an update package. However, the status of the update package cannot be queried indefinitely as an SOVD server implementation may remove the update package resource, e.g., upon SOVD server restart or the retrieval of new update packages.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the update package
+        explode: false
+        in: path
+        name: update-package-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "202":
+          description: "If no error is detected immediately (e.g., because the identifier\
+            \ does not exist)."
+          headers:
+            Location:
+              description: "The URI to the newly created example. <br> /{entity-path}/updates/{update-package-id}/status"
+              explode: false
+              schema:
+                format: uri
+                type: string
+              style: simple
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+  /{entity-collection}/{entity-id}/updates/{update-package-id}/prepare:
+    put:
+      description: |-
+        The method starts the preparation of the update package for installation. As part of this step the following tasks are performed for example:
+          - Validates if the update package is still installable (e.g., checking the software versions of the affected entities)
+          - Download of update package from OTA backend
+          - Validation of the integrity of update package
+          - Applying deltas
+          - Installing the update in B-memory
+
+        The method returns immediately and redirects the SOVD client to a method for requesting the status and progress of the preparation. An SOVD server may remove prepared updates after an OEM defined amount of time. An explicit removal of a prepared update by an SOVD client is not provided by the SOVD API as the update is implicitly removed after installation. If an update fails, it is in general not implicitly removed as the prepared package may be used for anoth
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the update package
+        explode: false
+        in: path
+        name: update-package-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "202":
+          description: "If no error is detected immediately (e.g., because the update\
+            \ package does not exist)"
+          headers:
+            Location:
+              description: "The URI to the newly created example. <br> /{entity-path}/updates/{update-package-id}/status"
+              explode: false
+              schema:
+                format: uri
+                type: string
+              style: simple
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+  /{entity-collection}/{entity-id}/updates/{update-package-id}/status:
+    get:
+      description: The method returns the status of the preparation or execution of
+        the update.
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifier for the update package
+        explode: false
+        in: path
+        name: update-package-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__entity_collection___entity_id__updates__update_package_id__status_get_200_response'
+          description: "If no error is detected immediately (e.g., because the identifier\
+            \ does not exist)."
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - updates
+  /{entity-collection}/{entity-id}/faults:
+    delete:
+      description: This method deletes all fault entries of an entity.
+      operationId: deleteAllFaults
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The scope (e.g. user-defined error memories) for which faults
+          are retrieved. The capability description defines which scopes are supported.
+        explode: true
+        in: query
+        name: scope
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "204":
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - fault-handling
+    get:
+      description: "This method provides the fault entries which are detected for\
+        \ an entity, if no query parameter is used. The returned fault entries may\
+        \ be filtered by their status."
+      operationId: getFaults
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      - description: "Filters the available elements based on a key from the status.\
+          \ The provided value is a full match against the key and value of the attribute\
+          \ status in the response. For filtering by multiple status, the parameter\
+          \ is repeated (0 .. *). If multiple status are provided, they are logically\
+          \ OR combined. The keys supported by an entity are defined in the capability\
+          \ description of the entity."
+        explode: true
+        in: query
+        name: "status[key]"
+        required: false
+        schema:
+          title: id
+          type: string
+        style: form
+      - description: Filter fault entries by their severity. Any fault with a severity
+          below the given number will be included in the response.
+        explode: true
+        in: query
+        name: severity
+        required: false
+        schema:
+          type: integer
+        style: form
+      - description: The scope (e.g. user-defined error memories) for which faults
+          are retrieved. The capability description defines which scopes are supported.
+        explode: true
+        in: query
+        name: scope
+        required: false
+        schema:
+          title: id
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getFaults_200_response'
+          description: Retrieve list of all faults provided by the entity
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - fault-handling
+  /{entity-collection}/{entity-id}/faults/{fault-code}:
+    delete:
+      description: This method deletes the given fault entry from an entity.
+      operationId: deleteFaultById
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The scope (e.g. user-defined error memories) for which faults
+          are retrieved. The capability description defines which scopes are supported.
+        explode: false
+        in: path
+        name: fault-code
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Fault entry has been deleted successfully.
+        "404":
+          description: The SOVD client tried to delete a fault entry which is not
+            defined for the entity.
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: "The SOVD client does not fulfill the conditions for deleting\
+            \ a single DTC, e.g., the DTC is safety relevant. The SOVD server should\
+            \ supply SOVD REST API ASAM SOVD, API Specification Version 1.0.0 57 information\
+            \ in the GenericError which condition is not met (e.g., safety conditions,\
+            \ DTC not set, …)"
+        "501":
+          description: The request for deleting single fault entries is not supported
+            by the entity.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - fault-handling
+    get:
+      description: This method provides the details for a fault-code.
+      operationId: getFaultById
+      parameters:
+      - description: Path to an entity collection
+        explode: false
+        in: path
+        name: entity-collection
+        required: true
+        schema:
+          enum:
+          - Area
+          - Component
+          - App
+          - Function
+          type: string
+        style: simple
+      - description: ID of an entity
+        explode: false
+        in: path
+        name: entity-id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The scope (e.g. user-defined error memories) for which faults
+          are retrieved. The capability description defines which scopes are supported.
+        explode: false
+        in: path
+        name: fault-code
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      - description: "Specifies whether the response should include schema information\
+          \ or not. Default: false"
+        explode: true
+        in: query
+        name: include-schema
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                item:
+                  code: 0012E3
+                  scope: Default
+                  display_code: P102
+                  fault_name: No signal from sensor
+                  fault_translation_id: CAMERA_0012E3_tid
+                  severity: 1
+                  status:
+                    testFailed: "1"
+                    testFailedThisOperationCycle: "1"
+                    pendingDTC: "0"
+                    confirmedDTC: "1"
+                    testNotCompletedSinceLastClear: "1"
+                    testFailedSinceLastClear: "0"
+                    testNotCompletedThisOperationCycle: "0"
+                    warningIndicatorRequested: "0"
+                    mask: 1E
+                    aggregatedStatus: active
+                environment_data:
+                  id: env_data
+                  data:
+                    battery_voltage: 12.8
+                    occurence_counter: 12
+                    first_occurence: 2021-06-22T11:47:22Z
+                    last_occurence: 2021-07-01T10:12:53Z
+              schema:
+                $ref: '#/components/schemas/getFaultById_200_response'
+          description: The request was successful.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/__any_path__docs_get_default_response'
+          description: An unexpected error occurred.
+      tags:
+      - fault-handling
+  /ecu/engine/faults:
+    delete:
+      description: Delete all faults from the simulated engine ECU.
+      operationId: clearEngineEcuFaults
+      responses:
+        "204":
+          description: All faults cleared
+      summary: Clear Engine Faults
+      tags:
+      - fault-handling
+    get:
+      description: "Retrieve faults from the simulated engine ECU. Supports scope\
+        \ filter (active, pending, permanent)."
+      operationId: getEngineEcuFaults
+      parameters:
+      - description: Filter faults by scope
+        explode: true
+        in: query
+        name: scope
+        required: false
+        schema:
+          enum:
+          - active
+          - pending
+          - permanent
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: ./faults/faults.yaml#/components/schemas/Fault
+                type: array
+          description: List of engine faults
+        "500":
+          description: Internal server error
+      summary: Get Engine Faults
+      tags:
+      - fault-handling
+    post:
+      description: Inject a simulated fault into the engine ECU (for testing purposes).
+      operationId: addEngineEcuFault
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./faults/faults.yaml#/components/schemas/Fault
+        required: true
+      responses:
+        "201":
+          description: Fault created
+        "400":
+          description: Bad request
+      summary: Add Engine Fault
+      tags:
+      - fault-handling
+  /ecu/engine/faults/{fault_id}:
+    get:
+      description: Retrieve a specific fault from the engine ECU by its ID.
+      operationId: getEngineEcuFaultById
+      parameters:
+      - description: The fault DTC code
+        explode: false
+        in: path
+        name: fault_id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: ./faults/faults.yaml#/components/schemas/Fault
+          description: Fault details
+        "404":
+          description: Fault not found
+      summary: Get Engine Fault By ID
+      tags:
+      - fault-handling
+  /ecu/engine/data:
+    get:
+      description: Retrieve all available data items from the simulated engine ECU.
+      operationId: getEngineEcuData
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: List of ECU data items
+      summary: Get All ECU Data
+      tags:
+      - data-retrieval
+  /ecu/engine/data/{data_id}:
+    get:
+      description: Retrieve a specific data item from the engine ECU.
+      operationId: getEngineEcuDataById
+      parameters:
+      - explode: false
+        in: path
+        name: data_id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Data item
+        "404":
+          description: Not found
+      summary: Get ECU Data By ID
+      tags:
+      - data-retrieval
+    put:
+      description: Write a value to a specific data item of the engine ECU.
+      operationId: updateEngineEcuData
+      parameters:
+      - explode: false
+        in: path
+        name: data_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          description: Updated
+        "400":
+          description: Bad request
+      summary: Update ECU Data
+      tags:
+      - data-retrieval
+  /ecu/engine/data/speed:
+    get:
+      description: Retrieve the current simulated vehicle speed from the engine ECU.
+      operationId: getEngineEcuSpeed
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getEngineEcuSpeed_200_response'
+          description: Current speed value
+      summary: Get Vehicle Speed
+      tags:
+      - data-retrieval
+  /ecu/engine/data/speed/events:
+    get:
+      description: Server-Sent Events stream for real-time vehicle speed updates.
+        Implements SOVD ResponseOnEvent mechanism (equivalent to UDS 0x86). Pushes
+        speed values every 500ms.
+      operationId: getEngineEcuSpeedEvents
+      responses:
+        "200":
+          content:
+            text/event-stream:
+              schema:
+                title: id
+                type: string
+          description: SSE stream of speed events
+      summary: SSE - Speed ResponseOnEvent
+      tags:
+      - data-retrieval
+  /ecu/engine/logs:
+    delete:
+      description: Clear all diagnostic logs from the engine ECU.
+      operationId: clearEngineEcuLogs
+      responses:
+        "204":
+          description: Logs cleared
+      summary: Clear Engine Diagnostic Logs
+      tags:
+      - logging
+    get:
+      description: Retrieve diagnostic logs from the simulated engine ECU.
+      operationId: getEngineEcuLogs
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: List of log entries
+      summary: Get Engine Diagnostic Logs
+      tags:
+      - logging
+  /ecu/engine/updates:
+    get:
+      description: List available software update packages for the engine ECU.
+      operationId: getEngineEcuUpdates
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: List of update packages
+      summary: Get Available Updates
+      tags:
+      - updates
+    post:
+      description: Start a software update process for the engine ECU.
+      operationId: initiateEngineEcuUpdate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "202":
+          description: Update initiated
+      summary: Initiate Software Update
+      tags:
+      - updates
+  /ecu/engine/updates/{update_id}:
+    get:
+      description: Check the status of a software update for the engine ECU.
+      operationId: getEngineEcuUpdateStatus
+      parameters:
+      - explode: false
+        in: path
+        name: update_id
+        required: true
+        schema:
+          title: id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Update status
+        "404":
+          description: Update not found
+      summary: Get Update Status
+      tags:
+      - updates
+components:
+  schemas:
+    __entity_collection___entity_id__data_get_200_response_items_inner:
+      example:
+        translation_id: translation_id
+        name: name
+        groups:
+        - groups
+        - groups
+        id: id
+        category: currentData
+      properties:
+        id:
+          title: id
+          type: string
+        name:
+          title: id
+          type: string
+        translation_id:
+          title: id
+          type: string
+        category:
+          example: currentData
+          pattern: "^[A-Za-z0-9_-]+$"
+          title: category
+          type: string
+        groups:
+          items:
+            type: string
+          title: groups
+          type: array
+      required:
+      - category
+      - id
+      - name
+      title: __entity_collection___entity_id__data_get_200_response_items_inner
+    __entity_collection___entity_id__operations__operation_id__executions__execution_id__put_request:
+      properties:
+        capability:
+          description: "Capability to be executed (one of execute, freeze, or reset\
+            \ as well as the OEM specific capabilities."
+          enum:
+          - execute
+          - stop
+          - freeze
+          - reset
+          - status
+          title: capability
+          type: string
+        timeout:
+          description: Timeout after which the SOVD server should terminate the execution
+            of the operation by using the capability stop. The time is specified in
+            seconds. For extending the timeout a new control request for the operation
+            has to be submitted by the SOVD client.
+          title: timeout
+          type: integer
+        parameters:
+          description: Parameters for executing the operation.
+          title: parameters
+          example: null
+        proximity_response:
+          description: Response to proximity challenge if required by the operation.
+          title: proximity_response
+          type: string
+      required:
+      - capability
+      title: __entity_collection___entity_id__operations__operation_id__executions__execution_id__put_request
+    __entity_collection___entity_id__updates__update_package_id__status_get_200_response:
+      example:
+        phase: prepare
+        progress: 0
+        subprogress:
+        - progress: 6
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+          entity: entity
+          status: pending
+        - progress: 6
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+          entity: entity
+          status: pending
+        step: step
+        error:
+          vendor_code: vendor_code
+          translation_id: translation_id
+          error_code: error_code
+          message: message
+          parameters: "{}"
+        step_translation_id: step_translation_id
+        status: pending
+      properties:
+        phase:
+          description: Current phase of the update process.
+          enum:
+          - prepare
+          - execute
+          title: phase
+          type: string
+        status:
+          description: Status of the preparation or execution.
+          enum:
+          - pending
+          - inProgress
+          - failed
+          - completed
+          title: status
+          type: string
+        progress:
+          description: Progress of the preparation or execution in percent.
+          title: progress
+          type: integer
+        subprogress:
+          description: Progress of the updated entities.
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__updates__update_package_id__status_get_200_response_subprogress_inner'
+          title: subprogress
+          type: array
+        step:
+          description: Description of the current step.
+          title: step
+          type: string
+        step_translation_id:
+          description: Translation identifier for the step.
+          title: step_translation_id
+          type: string
+        error:
+          $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_200_response_error'
+      required:
+      - phase
+      - status
+      title: __entity_collection___entity_id__updates__update_package_id__status_get_200_response
+    __entity_collection___entity_id__operations__operation_id__get_200_response:
+      example:
+        item:
+          id: SteeringAngleControl
+          name: Control the steering angle value
+          translation_id: tid1928653
+          proximity_proof_required: false
+          asynchronous_execution: true
+        modes:
+          session: EXTENDED
+      properties:
+        item:
+          $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__get_200_response_item'
+        proximity_challenge:
+          $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__get_200_response_proximity_challenge'
+        modes:
+          additionalProperties:
+            $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__get_200_response_modes_value'
+        schema:
+          description: "The schema definition of the response. Condition: Only provided\
+            \ if the query parameter include-schema is true."
+          title: schema
+          type: object
+      required:
+      - item
+      title: __entity_collection___entity_id__operations__operation_id__get_200_response
+    __entity_collection___entity_id__data_get_200_response:
+      example:
+        schema: "{}"
+        items:
+        - translation_id: translation_id
+          name: name
+          groups:
+          - groups
+          - groups
+          id: id
+          category: currentData
+        - translation_id: translation_id
+          name: name
+          groups:
+          - groups
+          - groups
+          id: id
+          category: currentData
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__data_get_200_response_items_inner'
+          title: items
+          type: array
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection___entity_id__data_get_200_response
+    __entity_collection___entity_id__data_lists__data_list_id__get_200_response:
+      example:
+        schema: "{}"
+        items:
+        - schema: "{}"
+          data: ""
+          id: id
+          errors:
+          - path: path
+            error:
+              vendor_code: vendor_code
+              translation_id: translation_id
+              error_code: error_code
+              message: message
+              parameters: "{}"
+          - path: path
+            error:
+              vendor_code: vendor_code
+              translation_id: translation_id
+              error_code: error_code
+              message: message
+              parameters: "{}"
+        - schema: "{}"
+          data: ""
+          id: id
+          errors:
+          - path: path
+            error:
+              vendor_code: vendor_code
+              translation_id: translation_id
+              error_code: error_code
+              message: message
+              parameters: "{}"
+          - path: path
+            error:
+              vendor_code: vendor_code
+              translation_id: translation_id
+              error_code: error_code
+              message: message
+              parameters: "{}"
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__data_lists__data_list_id__get_200_response_items_inner'
+          title: items
+          type: array
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection___entity_id__data_lists__data_list_id__get_200_response
+    __entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf_1:
+      example:
+        type: AUTOSAR_DLT
+        session: SES01
+        session_id: 0x0001
+        application_id: WindowControl
+        context_id: STD0
+        message_id: msg000012
+      properties:
+        type:
+          type: string
+        session:
+          title: id
+          type: string
+        session_id:
+          title: id
+          type: string
+        application_id:
+          title: id
+          type: string
+        context_id:
+          title: id
+          type: string
+        message_id:
+          title: id
+          type: string
+      required:
+      - type
+      title: __entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf_1
+    __entity_collection___entity_id__operations__operation_id__executions_post_200_response_error:
+      description: Only set if status is failed.
+      example:
+        vendor_code: vendor_code
+        translation_id: translation_id
+        error_code: error_code
+        message: message
+        parameters: "{}"
+      properties:
+        error_code:
+          description: SOVD standardized error code
+          title: error_code
+          type: string
+        vendor_code:
+          description: "Vendor specific error code Condition: If the error_code is\
+            \ vendor-specific this attribute has to be filled."
+          title: vendor_code
+          type: string
+        message:
+          description: Message describing the problem in more detail.
+          title: message
+          type: string
+        translation_id:
+          description: Identifier for translating the message
+          title: translation_id
+          type: string
+        parameters:
+          description: Key-value-list which provides additional information on the
+            error
+          title: parameters
+          type: object
+      required:
+      - error_code
+      - message
+      title: __entity_collection___entity_id__operations__operation_id__executions_post_200_response_error
+    __entity_collection___entity_id__operations__operation_id__get_200_response_proximity_challenge:
+      description: "If proximity_proof_required is true, the challenge is provided.\
+        \ The challenge is used for proving proximity to the vehicle."
+      properties:
+        challenge:
+          description: Challenge which has to be solved by the SOVD client to prove
+            proximity.
+          title: challenge
+          type: string
+        valid_until:
+          description: The time until which the challenge is valid.
+          format: date-time
+          title: valid_until
+          type: string
+      required:
+      - challenge
+      - valid_until
+      title: __entity_collection___entity_id__operations__operation_id__get_200_response_proximity_challenge
+    __entity_collection___entity_id__locks__lock_id__get_200_response:
+      example:
+        lock_expiration: 2021-06-22T11:47:22Z
+      properties:
+        lock_expiration:
+          description: "A date-time string, that defines at which point in time the\
+            \ lock expires and would therefore be automatically released by the SOVD\
+            \ server. The SOVD server always returns an absolute date and time in\
+            \ UTC based on the relative time provided by the SOVD client."
+          format: date-time
+          type: string
+      required:
+      - lock_expiration
+      title: __entity_collection___entity_id__locks__lock_id__get_200_response
+    __entity_collection___entity_id__operations__operation_id__get_200_response_modes_value:
+      anyOf:
+      - title: id
+        type: string
+      - type: number
+      - type: integer
+      - type: boolean
+      - items: {}
+      - type: object
+      description: "Additional OEM-specific information describing the environment\
+        \ of the system at the time of setting the fault. Condition: Only set if the\
+        \ fault provides the requested information."
+      title: __entity_collection___entity_id__operations__operation_id__get_200_response_modes_value
+    __entity_collection___entity_id__logs_entries_get_200_response_items_inner:
+      example:
+        timestamp: 2021-07-20T00:00:04.387819Z
+        context:
+          type: RFC5424
+          host: Linux
+          process: systemd
+          pid: 1
+        severity: info
+        msg: Closed D-Bus User Message Bus Socket
+        href: https://sovd.server/v1/components/DrivingComputer/bulk-data/logs/server.log
+      properties:
+        timestamp:
+          description: "Format: RFC3339 (UTC)"
+          format: date-time
+          type: string
+        context:
+          $ref: '#/components/schemas/__entity_collection___entity_id__logs_entries_get_200_response_items_inner_context'
+        severity:
+          description: The severity specifies the log-level for the given context.
+          enum:
+          - fatal
+          - error
+          - warn
+          - info
+          - debug
+          title: severity
+          type: string
+        msg:
+          description: The actual log message (text)
+          type: string
+        href:
+          description: Reference to a URI for retrieving the underlying original log
+            file in an application specific format
+          format: uri-reference
+          type: string
+      required:
+      - context
+      - msg
+      - severity
+      - timestamp
+      title: __entity_collection___entity_id__logs_entries_get_200_response_items_inner
+    getFaultById_200_response_item:
+      description: Fault description
+      example:
+        severity: 1
+        symptom: symptom
+        code: 0012E3
+        fault_name: No signal from sensor
+        display_code: P102
+        symptom_transaction_id: symptom_transaction_id
+        fault_translation_id: CAMERA_0012E3_tid
+        scope: Default
+        status: "{}"
+      properties:
+        code:
+          description: Fault code in the native representation of the entity.
+          example: 0012E3
+          title: code
+          type: string
+        scope:
+          description: "Defines the scope (e.g., user-defined fault memories) for\
+            \ fault entries. The capability description defines which scopes are supported."
+          example: Default
+          title: scope
+          type: string
+        display_code:
+          description: Display representation for the fault code.
+          example: P102
+          title: display_code
+          type: string
+        fault_name:
+          description: Name / description of the fault
+          example: No signal from sensor
+          title: fault_name
+          type: string
+        fault_translation_id:
+          description: Optional identifier for translating the name
+          example: CAMERA_0012E3_tid
+          title: fault_translation_id
+          type: string
+        severity:
+          description: "Severity defines the impact on the availability of the vehicle.\
+            \ Lower number means higher severity. For a classic ECU this resembles\
+            \ the level from ODX, for HPCs the SOVD API recommends 1 = FATAL, 2 =\
+            \ ERROR, 3 = WARN, and 4 = INFO."
+          example: 1
+          title: severity
+          type: integer
+        status:
+          description: Detailed status information for the fault as key value pairs.
+            For classic ECU this resembles the status byte of a DTC. The content of
+            the keys and values is OEM-specific. The keys are defined in the capability
+            description. See Notes below.
+          title: status
+          type: object
+        symptom:
+          description: Detailed symptom / failure mode information for the fault.
+            For classic ECU this resembles the symptom of a DTC. The content of the
+            attribute is OEM-specific.
+          title: symptom
+          type: string
+        symptom_transaction_id:
+          description: Translation identifier for the symptom name.
+          items:
+            anyOf:
+            - {}
+            - {}
+            - {}
+            - {}
+            - items: {}
+            - {}
+            description: "Response parameters of the operation depending on the capability.\
+              \ The type of the value is defined by the schema. Condition: If the\
+              \ capability provides response parameters."
+          title: symptom_transaction_id
+          type: string
+      required:
+      - code
+      - fault_name
+      title: getFaultById_200_response_item
+    __entity_collection___entity_id__get_200_response:
+      example:
+        relatedapps: relatedapps
+        subareas: subareas
+        data-lists: data-lists
+        translation_id: translation_id
+        modes: modes
+        data: https://sovd.server/v1/apps/AdvancedLaneKeeping/data
+        configurations: https://sovd.server/v1/apps/AdvancedLaneKeeping/configurations
+        relatedcomponents: relatedcomponents
+        updates: updates
+        faults: https://sovd.server/v1/apps/AdvancedLaneKeeping/faults
+        locks: locks
+        operations: https://sovd.server/v1/apps/AdvancedLaneKeeping/operations
+        name: Advanced Lane Keeping
+        variant: ""
+        bulk-data: https://sovd.server/v1/apps/AdvancedLaneKeeping/bulk-data
+        id: AdvancedLaneKeeping
+        subcomponents: subcomponents
+        logs: https://sovd.server/v1/apps/AdvancedLaneKeeping/logs
+      properties:
+        id:
+          description: Entity-Id
+          example: AdvancedLaneKeeping
+          title: id
+          type: string
+        name:
+          description: Name of the Entity
+          example: Advanced Lane Keeping
+          title: name
+          type: string
+        translation_id:
+          description: Identifier for translating the name
+          title: translation_id
+          type: string
+        variant:
+          description: "Additional OEM-specific information describing the environment\
+            \ of the system at the time of setting the fault. Condition: Only set\
+            \ if the fault provides the requested information."
+          title: variant
+          example: null
+        configurations:
+          description: A reference to the configurations collection
+          example: https://sovd.server/v1/apps/AdvancedLaneKeeping/configurations
+          format: uri-reference
+          title: configurations
+          type: string
+        bulk-data:
+          description: A reference to the bulk-data collection
+          example: https://sovd.server/v1/apps/AdvancedLaneKeeping/bulk-data
+          format: uri-reference
+          title: bulk-data
+          type: string
+        data:
+          description: A reference to the data collection
+          example: https://sovd.server/v1/apps/AdvancedLaneKeeping/data
+          format: uri-reference
+          title: data
+          type: string
+        data-lists:
+          description: A reference to the data-lists collection
+          format: uri-reference
+          title: data-lists
+          type: string
+        faults:
+          description: A reference to faults collection
+          example: https://sovd.server/v1/apps/AdvancedLaneKeeping/faults
+          format: uri-reference
+          title: faults
+          type: string
+        operations:
+          description: A reference to the operations collections
+          example: https://sovd.server/v1/apps/AdvancedLaneKeeping/operations
+          format: uri-reference
+          title: operations
+          type: string
+        updates:
+          description: A reference to the updated collection
+          format: uri-reference
+          title: updates
+          type: string
+        modes:
+          description: A reference tot the modes collection
+          format: uri-reference
+          title: modes
+          type: string
+        relatedapps:
+          description: A reference to the reference-collection providing the apps
+            (Only available for components)
+          format: uri-reference
+          title: relatedapps
+          type: string
+        relatedcomponents:
+          description: A reference to the reference-collection providing the components
+            (Only available for areas)
+          format: uri-reference
+          title: relatedcomponents
+          type: string
+        subareas:
+          description: A reference to the reference-collection providing the subareas
+            (Only available for areas)
+          format: uri-reference
+          title: subareas
+          type: string
+        subcomponents:
+          description: A reference to the reference-collection providing the subcomponents
+            (Only available for components)
+          format: uri-reference
+          title: subcomponents
+          type: string
+        locks:
+          description: A reference to the reference-collection locks
+          format: uri-reference
+          title: locks
+          type: string
+        logs:
+          description: A reference to the resource logs
+          example: https://sovd.server/v1/apps/AdvancedLaneKeeping/logs
+          format: uri-reference
+          title: logs
+          type: string
+      required:
+      - id
+      - name
+      title: __entity_collection___entity_id__get_200_response
+    __entity_collection___entity_id__data__data_id__put_request:
+      properties:
+        data:
+          description: "Additional OEM-specific information describing the environment\
+            \ of the system at the time of setting the fault. Condition: Only set\
+            \ if the fault provides the requested information."
+          title: data
+          example: null
+        signature:
+          description: Additional security artefact for the data itself. This is independent
+            from the authentication in the method header.
+          title: signature
+          type: string
+      required:
+      - data
+      title: __entity_collection___entity_id__data__data_id__put_request
+    __entity_collection___entity_id__data_lists_post_201_response:
+      example:
+        id: id
+      properties:
+        id:
+          title: id
+          type: string
+      required:
+      - id
+      title: __entity_collection___entity_id__data_lists_post_201_response
+    __entity_collection___entity_id__data_lists__data_list_id__get_200_response_items_inner:
+      example:
+        schema: "{}"
+        data: ""
+        id: id
+        errors:
+        - path: path
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+        - path: path
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+      properties:
+        id:
+          title: id
+          type: string
+        data:
+          title: data
+          example: null
+        errors:
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response_errors_inner'
+          title: errors
+          type: array
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+      required:
+      - data
+      - id
+      title: __entity_collection___entity_id__data_lists__data_list_id__get_200_response_items_inner
+    __entity_collection___entity_id__operations_get_200_response:
+      example:
+        items:
+        - id: SteeringAngleControl
+          name: Control the steering angle value
+          translation_id: tid1928653
+          proximity_proof_required: false
+          asynchronous_execution: true
+      properties:
+        items:
+          description: The list of all operations of the entity.
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__operations_get_200_response_items_inner'
+          type: array
+        schema:
+          description: "Schema for describing the response. Condition: Only provided\
+            \ if the query parameter include-schema is true."
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection___entity_id__operations_get_200_response
+    __entity_collection___entity_id__operations__operation_id__executions__execution_id__get_200_response:
+      example:
+        status: running
+        capability: execute
+        parameters:
+          control-type: absolute
+          angle: 120.3
+      properties:
+        status:
+          description: Status of the executed operation.
+          enum:
+          - running
+          - completed
+          - failed
+          type: string
+        capability:
+          description: Capability executed at the moment. This is either execute or
+            the capability which has been used with a PUT request
+          enum:
+          - execute
+          - stop
+          - freeze
+          - reset
+          - status
+          type: string
+        parameters:
+          description: "Additional OEM-specific information describing the environment\
+            \ of the system at the time of setting the fault. Condition: Only set\
+            \ if the fault provides the requested information."
+          example: null
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+        error:
+          description: "Condition: Set if an error occurred when the operation is\
+            \ executed. The path attribute references erroneous parameters of the\
+            \ operation execution. If the path attribute is “/” then the operation\
+            \ itself failed and the error describes the reason for the failure."
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response_errors_inner'
+          type: array
+      required:
+      - capability
+      title: __entity_collection___entity_id__operations__operation_id__executions__execution_id__get_200_response
+    __entity_collection__get_200_response_items_inner:
+      example:
+        translation_id: translation_id
+        name: name
+        id: id
+        href: href
+      properties:
+        id:
+          title: id
+          type: string
+        name:
+          title: id
+          type: string
+        translation_id:
+          title: id
+          type: string
+        href:
+          format: uri-reference
+          title: href
+          type: string
+      required:
+      - href
+      - id
+      - name
+      title: __entity_collection__get_200_response_items_inner
+    __entity_collection___entity_id__operations_get_200_response_items_inner:
+      properties:
+        id:
+          description: Unique identifier for an operation
+          title: id
+          type: string
+        name:
+          description: Operation name
+          title: name
+          type: string
+        translation_id:
+          description: Identifier for translating the operations name
+          title: translation_id
+          type: string
+        proximity_proof_required:
+          description: "If true, the execution of the operation requires a proof of\
+            \ proximity. An SOVD client can use this information to filter operations\
+            \ in advance if a proximity proof cannot be provided. If true, the offline\
+            \ Capability description includes the attribute x-sovd-proximity-proof-required\
+            \ in the PathItem object."
+          title: proximity_proof_required
+          type: boolean
+        asynchronous_execution:
+          description: "If true, the execution of the operation is asynchronous. If\
+            \ true, the offline Capability description includes the attribute x-sovd-asynchronous-execution\
+            \ with the value true in the PathItem object."
+          title: asynchronous_execution
+          type: boolean
+      required:
+      - asynchronous_execution
+      - id
+      - proximity_proof_required
+      title: __entity_collection___entity_id__operations_get_200_response_items_inner
+    getFaults_200_response_items_inner:
+      description: Description of a single fault
+      example:
+        severity: 1
+        symptom: symptom
+        code: 0012E3
+        fault_name: No signal from sensor
+        display_code: P102
+        symptom_transaction_id: symptom_transaction_id
+        fault_translation_id: CAMERA_0012E3_tid
+        scope: Default
+        status: "{}"
+      properties:
+        code:
+          description: Fault code in the native representation of the entity.
+          example: 0012E3
+          title: code
+          type: string
+        scope:
+          description: "Defines the scope (e.g., user-defined fault memories) for\
+            \ fault entries. The capability description defines which scopes are supported."
+          example: Default
+          title: scope
+          type: string
+        display_code:
+          description: Display representation for the fault code.
+          example: P102
+          title: display_code
+          type: string
+        fault_name:
+          description: Name / description of the fault
+          example: No signal from sensor
+          title: fault_name
+          type: string
+        fault_translation_id:
+          description: Optional identifier for translating the name
+          example: CAMERA_0012E3_tid
+          title: fault_translation_id
+          type: string
+        severity:
+          description: "Severity defines the impact on the availability of the vehicle.\
+            \ Lower number means higher severity. For a classic ECU this resembles\
+            \ the level from ODX, for HPCs the SOVD API recommends 1 = FATAL, 2 =\
+            \ ERROR, 3 = WARN, and 4 = INFO."
+          example: 1
+          title: severity
+          type: integer
+        status:
+          description: Detailed status information for the fault as key value pairs.
+            For classic ECU this resembles the status byte of a DTC. The content of
+            the keys and values is OEM-specific. The keys are defined in the capability
+            description. See Notes below.
+          title: status
+          type: object
+        symptom:
+          description: Detailed symptom / failure mode information for the fault.
+            For classic ECU this resembles the symptom of a DTC. The content of the
+            attribute is OEM-specific.
+          title: symptom
+          type: string
+        symptom_transaction_id:
+          description: Translation identifier for the symptom name.
+          items:
+            anyOf:
+            - {}
+            - {}
+            - {}
+            - {}
+            - items: {}
+            - {}
+            description: "Response parameters of the operation depending on the capability.\
+              \ The type of the value is defined by the schema. Condition: If the\
+              \ capability provides response parameters."
+          title: symptom_transaction_id
+          type: string
+      required:
+      - code
+      - fault_name
+      title: getFaults_200_response_items_inner
+    _updates_post_201_response:
+      example:
+        id: id
+      properties:
+        id:
+          description: Identifier for the update package created by the SOVD server.
+          title: id
+          type: string
+      required:
+      - id
+      title: _updates_post_201_response
+    __entity_collection___entity_id__data__data_id__get_200_response:
+      example:
+        schema: "{}"
+        data: ""
+        id: id
+        errors:
+        - path: path
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+        - path: path
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+      properties:
+        id:
+          title: id
+          type: string
+        data:
+          description: "Additional OEM-specific information describing the environment\
+            \ of the system at the time of setting the fault. Condition: Only set\
+            \ if the fault provides the requested information."
+          title: data
+          example: null
+        errors:
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response_errors_inner'
+          title: errors
+          type: array
+        schema:
+          description: "Schema for describing the response. Condition: Only provided\
+            \ if the query parameter include-schema is true."
+          title: schema
+          type: object
+      required:
+      - data
+      - id
+      title: __entity_collection___entity_id__data__data_id__get_200_response
+    __entity_collection___entity_id__modes_get_200_response:
+      example:
+        items:
+        - id: session
+          name: Diagnostic session
+      properties:
+        items:
+          description: The list of available modes of an entity.
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__modes_get_200_response_items_inner'
+          type: array
+        schema:
+          description: "The schema definition of the response. Condition: Only provided\
+            \ if the query parameter include-schema is true."
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection___entity_id__modes_get_200_response
+    __entity_collection___entity_id__locks_post_201_response:
+      example:
+        id: 15c3e824-8278-44e1-b0b2-3bc16e4522f2
+      properties:
+        id:
+          description: The identifier of the created lock resource.
+          type: string
+      required:
+      - id
+      title: __entity_collection___entity_id__locks_post_201_response
+    __entity_collection___entity_id__logs_config_get_200_response:
+      example:
+        contexts:
+        - severity: fatal
+          context:
+            type: RFC5424
+            host: Linux
+            process: systemd
+            pid: 1
+        - severity: fatal
+          context:
+            type: RFC5424
+            host: Linux
+            process: systemd
+            pid: 1
+      properties:
+        contexts:
+          description: An array of LogConfiguration elements
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__logs_config_get_200_response_contexts_inner'
+          title: contexts
+          type: array
+      required:
+      - contexts
+      title: __entity_collection___entity_id__logs_config_get_200_response
+    __entity_collection___entity_id__operations__operation_id__executions__execution_id__delete_request:
+      properties:
+        proximity_response:
+          description: Response to proximity challenge if required by the operation.
+          title: proximity_response
+          type: string
+      title: __entity_collection___entity_id__operations__operation_id__executions__execution_id__delete_request
+    __entity_collection___entity_id__logs_config_put_request:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__logs_config_get_200_response_contexts_inner'
+          title: items
+          type: array
+      required:
+      - items
+      title: __entity_collection___entity_id__logs_config_put_request
+    __entity_collection___entity_id__locks_get_200_response:
+      example:
+        items:
+        - id: 15c3e824-8278-44e1-b0b2-3bc16e4522f2
+          owned: true
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__locks_get_200_response_items_inner'
+          type: array
+      required:
+      - items
+      title: __entity_collection___entity_id__locks_get_200_response
+    __entity_collection__get_200_response:
+      example:
+        schema: "{}"
+        items:
+        - translation_id: translation_id
+          name: name
+          id: id
+          href: href
+        - translation_id: translation_id
+          name: name
+          id: id
+          href: href
+      properties:
+        items:
+          description: Array of entity references.
+          items:
+            $ref: '#/components/schemas/__entity_collection__get_200_response_items_inner'
+          title: items
+          type: array
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection__get_200_response
+    __entity_collection___entity_id__operations__operation_id__executions_post_request:
+      example:
+        timeout: 120
+        parameters:
+          control-type: absolute
+          angle: 180
+      properties:
+        timeout:
+          description: Timeout after which the SOVD server should terminate the execution
+            of the operation by using the capability stop. The time is specified in
+            seconds. For extending the timeout a new control request for the operation
+            has to be submitted by the SOVD client.
+          type: integer
+        parameters:
+          description: "Additional OEM-specific information describing the environment\
+            \ of the system at the time of setting the fault. Condition: Only set\
+            \ if the fault provides the requested information."
+          example: null
+        proximity_response:
+          description: Response to proximity challenge if required by the operation.
+          type: string
+      title: __entity_collection___entity_id__operations__operation_id__executions_post_request
+    __entity_collection___entity_id__updates__update_package_id__get_200_response:
+      example:
+        notes_translation_id: notes_translation_id
+        schema: "{}"
+        notes: notes
+        origin:
+        - proximity: proximity
+          remote: remote
+        - proximity: proximity
+          remote: remote
+        preconditions_transaltion_id: preconditions_transaltion_id
+        user_activity: user_activity
+        affected_components:
+        - affected_components
+        - affected_components
+        update_name: update_name
+        duration: 0
+        automated: true
+        execution_conditions: execution_conditions
+        size: 6
+        preconditions: preconditions
+        update_translation_id: update_translation_id
+        updated_components:
+        - updated_components
+        - updated_components
+        id: id
+        user_activity_translation_id: user_activity_translation_id
+      properties:
+        id:
+          description: "Identifier of the update package. Condition: Only provided\
+            \ if the path parameter update-package-id autonomous was used."
+          title: id
+          type: string
+        update_name:
+          description: Name of the update
+          title: update_name
+          type: string
+        automated:
+          description: "Specifies whether the update package can be installed automatedly\
+            \ or not. If missing, the attribute defaults to false."
+          title: automated
+          type: boolean
+        origin:
+          description: "List of origins for which the update package is applicable.\
+            \ If the attribute is left out or empty, any origin is applicable."
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__updates_get_origin_parameter'
+          title: origin
+          type: array
+        update_translation_id:
+          description: Translation identifier for the update_name.
+          title: update_translation_id
+          type: string
+        notes:
+          description: "Release notes for the updates, may also be a URI."
+          title: notes
+          type: string
+        notes_translation_id:
+          description: Translation identifier for the notes.
+          title: notes_translation_id
+          type: string
+        user_activity:
+          description: Activities which have to be performed by the user after the
+            update.
+          title: user_activity
+          type: string
+        user_activity_translation_id:
+          description: Translation identifier for the user_activity.
+          title: user_activity_translation_id
+          type: string
+        preconditions:
+          description: "Preconditions which shall be fulfilled for installing the\
+            \ update (e.g., doors locked, parking, …). In general, not being able\
+            \ to fulfill the preconditions would block the preparation of the update."
+          title: preconditions
+          type: string
+        preconditions_transaltion_id:
+          description: Translation identifier for the preconditions.
+          title: preconditions_transaltion_id
+          type: string
+        execution_conditions:
+          description: Description of the conditions which are required for executing
+            the update. May only be set if status is completed.
+          title: execution_conditions
+          type: string
+        duration:
+          description: "Time for which the vehicle will not be available when the\
+            \ update is installed and activated. The time is defined in seconds. If\
+            \ not set, the availability of the vehicle would not be affected."
+          title: duration
+          type: integer
+        size:
+          description: The download size of the update. The size is defined in kilo
+            bytes.
+          title: size
+          type: integer
+        updated_components:
+          description: "A list of Components to be updated. The URIs are in the form\
+            \ of {entity-path}."
+          items:
+            format: uri-reference
+            title: href
+            type: string
+          title: updated_components
+          type: array
+        affected_components:
+          description: "The list documents which Components may have a different behavior\
+            \ etc. The focus lies on user-perceived functions and Components. The\
+            \ URIs are in the form of {entity-path}."
+          items:
+            format: uri-reference
+            title: href
+            type: string
+          title: affected_components
+          type: array
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+      required:
+      - size
+      - update_name
+      title: __entity_collection___entity_id__updates__update_package_id__get_200_response
+    __entity_collection___entity_id__modes_get_200_response_items_inner:
+      properties:
+        id:
+          description: The resource identifier of a mode of an entity.
+          title: id
+          type: string
+        name:
+          description: The name of a mode of an entity.
+          title: name
+          type: string
+        translation_id:
+          description: Translation identifier for the name
+          title: translation_id
+          type: string
+      required:
+      - id
+      title: __entity_collection___entity_id__modes_get_200_response_items_inner
+    _areas__area_id__related_components_get_200_response:
+      example:
+        items:
+        - translation_id: translation_id
+          name: name
+          id: id
+          href: href
+        - translation_id: translation_id
+          name: name
+          id: id
+          href: href
+      properties:
+        items:
+          description: Array of entity references.
+          items:
+            $ref: '#/components/schemas/__entity_collection__get_200_response_items_inner'
+          title: items
+          type: array
+      required:
+      - items
+      title: _areas__area_id__related_components_get_200_response
+    __entity_collection___entity_id__configurations__configuration_id__put_request:
+      example:
+        data:
+          MaximumSpeed: 100
+          MinimumDistanceToLine: 10
+          EmergencyLaneDistanceToLine: 5
+        signature: cz71a129fez26sw8
+      properties:
+        data:
+          description: "Additional OEM-specific information describing the environment\
+            \ of the system at the time of setting the fault. Condition: Only set\
+            \ if the fault provides the requested information."
+          example: null
+        signature:
+          description: Binary string with signature information (if required by the
+            SOVD server / entity)
+          type: string
+      required:
+      - data
+      title: __entity_collection___entity_id__configurations__configuration_id__put_request
+    __entity_collection___entity_id__logs_config_get_200_response_contexts_inner:
+      example:
+        severity: fatal
+        context:
+          type: RFC5424
+          host: Linux
+          process: systemd
+          pid: 1
+      properties:
+        context:
+          $ref: '#/components/schemas/__entity_collection___entity_id__logs_config_get_200_response_contexts_inner_context'
+        severity:
+          description: The severity specifies the log-level for the given context.
+          enum:
+          - fatal
+          - error
+          - warn
+          - info
+          - debug
+          title: severity
+          type: string
+      required:
+      - context
+      - severity
+      title: __entity_collection___entity_id__logs_config_get_200_response_contexts_inner
+    getFaults_200_response:
+      description: List of all faults of a device
+      example:
+        schema: "{}"
+        items:
+        - severity: 1
+          symptom: symptom
+          code: 0012E3
+          fault_name: No signal from sensor
+          display_code: P102
+          symptom_transaction_id: symptom_transaction_id
+          fault_translation_id: CAMERA_0012E3_tid
+          scope: Default
+          status: "{}"
+        - severity: 1
+          symptom: symptom
+          code: 0012E3
+          fault_name: No signal from sensor
+          display_code: P102
+          symptom_transaction_id: symptom_transaction_id
+          fault_translation_id: CAMERA_0012E3_tid
+          scope: Default
+          status: "{}"
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/getFaults_200_response_items_inner'
+          title: items
+          type: array
+        schema:
+          description: "Schema for describing the response. Condition: Only provided\
+            \ if the query parameter include-schema is true."
+          title: schema
+          type: object
+      required:
+      - items
+      title: getFaults_200_response
+    __entity_collection___entity_id__operations__operation_id__get_200_response_item:
+      description: Description of the operation
+      properties:
+        id:
+          description: Unique identifier for an operation
+          title: id
+          type: string
+        name:
+          description: Operation name
+          title: name
+          type: string
+        translation_id:
+          description: Identifier for translating the operations name
+          title: translation_id
+          type: string
+        proximity_proof_required:
+          description: "If true, the execution of the operation requires a proof of\
+            \ proximity. An SOVD client can use this information to filter operations\
+            \ in advance if a proximity proof cannot be provided. If true, the offline\
+            \ Capability description includes the attribute x-sovd-proximity-proof-required\
+            \ in the PathItem object."
+          title: proximity_proof_required
+          type: boolean
+        asynchronous_execution:
+          description: "If true, the execution of the operation is asynchronous. If\
+            \ true, the offline Capability description includes the attribute x-sovd-asynchronous-execution\
+            \ with the value true in the PathItem object."
+          title: asynchronous_execution
+          type: boolean
+      required:
+      - asynchronous_execution
+      - id
+      - proximity_proof_required
+      title: __entity_collection___entity_id__operations__operation_id__get_200_response_item
+    __entity_collection___entity_id__logs_config_get_200_response_contexts_inner_context:
+      description: Definition of the context of the log message. Parts not specified
+        in the context are regarded as not set.
+      oneOf:
+      - $ref: '#/components/schemas/__entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf'
+      - $ref: '#/components/schemas/__entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf_1'
+      title: __entity_collection___entity_id__logs_config_get_200_response_contexts_inner_context
+    __entity_collection___entity_id__data_lists_post_request:
+      properties:
+        ids:
+          description: The data resource identifiers which should be read as part
+            of the data list.
+          example:
+          - DriverWindow
+          - PassengerWindow
+          - RearWindows
+          items:
+            title: id
+            type: string
+          title: ids
+          type: array
+      required:
+      - ids
+      title: __entity_collection___entity_id__data_lists_post_request
+    __entity_collection___entity_id__operations__operation_id__executions_get_200_response:
+      example:
+        items:
+        - fd34f39d-06e7-494b-af2d-8928e1458fb0
+      properties:
+        items:
+          description: List of identifiers of all execution instances of the operation
+          items:
+            title: id
+            type: string
+          type: array
+      required:
+      - items
+      title: __entity_collection___entity_id__operations__operation_id__executions_get_200_response
+    __entity_collection___entity_id__logs_entries_get_200_response:
+      example:
+        schema: "{}"
+        items:
+        - timestamp: 2021-07-20T00:00:04.387819Z
+          context:
+            type: RFC5424
+            host: Linux
+            process: systemd
+            pid: 1
+          severity: info
+          msg: Closed D-Bus User Message Bus Socket
+          href: https://sovd.server/v1/components/DrivingComputer/bulk-data/logs/server.log
+        - timestamp: 2021-07-20T00:00:04.387819Z
+          context:
+            type: RFC5424
+            host: Linux
+            process: systemd
+            pid: 1
+          severity: info
+          msg: Closed D-Bus User Message Bus Socket
+          href: https://sovd.server/v1/components/DrivingComputer/bulk-data/logs/server.log
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__logs_entries_get_200_response_items_inner'
+          title: items
+          type: array
+        schema:
+          description: "The schema definition of the response. Condition: Only provided\
+            \ if the query parameter include-schema is true."
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection___entity_id__logs_entries_get_200_response
+    __entity_collection___entity_id__locks_get_200_response_items_inner:
+      properties:
+        id:
+          description: The identifier of an acquired lock of an entity.
+          title: id
+          type: string
+        owned:
+          description: "If true, the SOVD client which performed the request owns\
+            \ the lock. The value is always false if the entity is not locked."
+          title: owned
+          type: boolean
+      required:
+      - id
+      title: __entity_collection___entity_id__locks_get_200_response_items_inner
+    __entity_collection___entity_id__operations__operation_id__executions_post_200_response:
+      example:
+        error:
+          vendor_code: vendor_code
+          translation_id: translation_id
+          error_code: error_code
+          message: message
+          parameters: "{}"
+        parameters: "{}"
+      properties:
+        parameters:
+          description: Response parameters of the operation depending on the capability.
+          title: parameters
+          type: object
+        error:
+          $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_200_response_error'
+      title: __entity_collection___entity_id__operations__operation_id__executions_post_200_response
+    __entity_collection___entity_id__configurations_get_200_response:
+      example:
+        items:
+        - id: ALKConfig
+          name: Configuration for the Advanced Lane Keeping System
+          type: parameter
+        - id: ObjectRecognitionModel
+          name: Model of objects to be recognized
+          type: bulk
+          version: 1.45.2107
+          content_type: application/octet-stream
+      properties:
+        items:
+          description: The list of all configurations provided by the entity.
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__configurations_get_200_response_items_inner'
+          type: array
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection___entity_id__configurations_get_200_response
+    __entity_collection___entity_id__logs_entries_get_200_response_items_inner_context:
+      description: Definition of the context of the log message identifying the source
+        of the entry.
+      oneOf:
+      - $ref: '#/components/schemas/__entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf'
+      - $ref: '#/components/schemas/__entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf_1'
+      title: __entity_collection___entity_id__logs_entries_get_200_response_items_inner_context
+    __entity_collection___entity_id__updates__update_package_id__status_get_200_response_subprogress_inner:
+      example:
+        progress: 6
+        error:
+          vendor_code: vendor_code
+          translation_id: translation_id
+          error_code: error_code
+          message: message
+          parameters: "{}"
+        entity: entity
+        status: pending
+      properties:
+        entity:
+          description: URI of the entity.
+          format: uri-reference
+          title: entity
+          type: string
+        status:
+          description: Status of the preparation or execution.
+          enum:
+          - pending
+          - inProgress
+          - failed
+          - completed
+          title: status
+          type: string
+        progress:
+          description: Progress of the preparation or execution in percent.
+          title: progress
+          type: integer
+        error:
+          $ref: '#/components/schemas/__entity_collection___entity_id__operations__operation_id__executions_post_200_response_error'
+      required:
+      - entity
+      - status
+      title: __entity_collection___entity_id__updates__update_package_id__status_get_200_response_subprogress_inner
+    __entity_collection___entity_id__locks_post_request:
+      example:
+        lock_expiration: 1800
+      properties:
+        lock_expiration:
+          description: Defines after how many seconds the lock expires and should
+            therefore be automatically released by the SOVD server. The capability
+            description shall define the maximum expiration time.
+          format: int32
+          type: number
+      required:
+      - lock_expiration
+      title: __entity_collection___entity_id__locks_post_request
+    __any_path__docs_get_default_response:
+      description: It is recommended that the response body of an error response includes
+        a more detailed description of the error which helps in diagnosing the issue.
+      example:
+        vendor_code: vendor_code
+        translation_id: translation_id
+        error_code: error_code
+        message: message
+        parameters: "{}"
+      properties:
+        error_code:
+          description: SOVD standardized error code
+          title: error_code
+          type: string
+        vendor_code:
+          description: "Vendor specific error code Condition: If the error_code is\
+            \ vendor-specific this attribute has to be filled."
+          title: vendor_code
+          type: string
+        message:
+          description: Message describing the problem in more detail.
+          title: message
+          type: string
+        translation_id:
+          description: Identifier for translating the message
+          title: translation_id
+          type: string
+        parameters:
+          description: Key-value-list which provides additional information on the
+            error
+          title: parameters
+          type: object
+      required:
+      - error_code
+      - message
+      title: __any_path__docs_get_default_response
+    __entity_collection___entity_id__data__data_id__get_200_response_errors_inner:
+      description: "On some occasions an error applies only to parts of a response,\
+        \ e.g., when reading a data resource. In this case the type DataError is used\
+        \ which includes a path to the erroneous attribute of the response."
+      example:
+        path: path
+        error:
+          vendor_code: vendor_code
+          translation_id: translation_id
+          error_code: error_code
+          message: message
+          parameters: "{}"
+      properties:
+        path:
+          description: A JSON Pointer describing which element of the response is
+            erroneous.
+          format: json-pointer
+          title: path
+          type: string
+        error:
+          $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response_errors_inner_error'
+      required:
+      - path
+      title: __entity_collection___entity_id__data__data_id__get_200_response_errors_inner
+    __entity_collection___entity_id__updates_get_origin_parameter:
+      description: The retrieval of update packages supports the definition of an
+        origin to specify in which environment or by whom the software update is triggered
+        by the SOVD client.
+      example:
+        proximity: proximity
+        remote: remote
+      properties:
+        remote:
+          description: "The update is performed over-the-air and no technician intervention\
+            \ is possible. Based on the requested version, authorization, network\
+            \ connection, etc. the SOVD server (or OEM backend) defines which updates\
+            \ are applicable."
+          title: remote
+          type: string
+        proximity:
+          description: The update is performed in a workshop and potentially technician
+            intervention is possible.
+          title: proximity
+          type: string
+      required:
+      - proximity
+      - remote
+      title: __entity_collection___entity_id__updates_get_origin_parameter
+    __entity_collection___entity_id__data_categories_get_200_response:
+      example:
+        items:
+        - currentData
+        - currentData
+      properties:
+        items:
+          items:
+            example: currentData
+            pattern: "^[A-Za-z0-9_-]+$"
+            type: string
+          title: items
+          type: array
+      required:
+      - items
+      title: __entity_collection___entity_id__data_categories_get_200_response
+    __entity_collection___entity_id__data__data_id__get_200_response_errors_inner_error:
+      description: "Describes the error more precisely. Condition: The attribute referenced\
+        \ by path contains an error."
+      example:
+        vendor_code: vendor_code
+        translation_id: translation_id
+        error_code: error_code
+        message: message
+        parameters: "{}"
+      properties:
+        error_code:
+          description: SOVD standardized error code
+          title: error_code
+          type: string
+        vendor_code:
+          description: "Vendor specific error code Condition: If the error_code is\
+            \ vendor-specific this attribute has to be filled."
+          title: vendor_code
+          type: string
+        message:
+          description: Message describing the problem in more detail.
+          title: message
+          type: string
+        translation_id:
+          description: Identifier for translating the message
+          title: translation_id
+          type: string
+        parameters:
+          description: Key-value-list which provides additional information on the
+            error
+          title: parameters
+          type: object
+      required:
+      - error_code
+      - message
+      title: __entity_collection___entity_id__data__data_id__get_200_response_errors_inner_error
+    getFaultById_200_response:
+      example:
+        schema: "{}"
+        item:
+          severity: 1
+          symptom: symptom
+          code: 0012E3
+          fault_name: No signal from sensor
+          display_code: P102
+          symptom_transaction_id: symptom_transaction_id
+          fault_translation_id: CAMERA_0012E3_tid
+          scope: Default
+          status: "{}"
+        environment_data: ""
+        errors:
+        - path: path
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+        - path: path
+          error:
+            vendor_code: vendor_code
+            translation_id: translation_id
+            error_code: error_code
+            message: message
+            parameters: "{}"
+      properties:
+        item:
+          $ref: '#/components/schemas/getFaultById_200_response_item'
+        environment_data:
+          description: "Additional OEM-specific information describing the environment\
+            \ of the system at the time of setting the fault. Condition: Only set\
+            \ if the fault provides the requested information."
+          title: environment_data
+          example: null
+        errors:
+          description: "Condition: Only set, if the value environment_data represents\
+            \ an error, and this attribute describes the error more precisely."
+          items:
+            $ref: '#/components/schemas/__entity_collection___entity_id__data__data_id__get_200_response_errors_inner'
+          title: errors
+          type: array
+        schema:
+          description: "Schema for describing the response. Condition: Only provided\
+            \ if the query parameter include-schema is true."
+          title: schema
+          type: object
+      required:
+      - item
+      title: getFaultById_200_response
+    __entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf:
+      example:
+        type: RFC5424
+        host: Linux
+        process: systemd
+        pid: 1
+      properties:
+        type:
+          type: string
+        host:
+          title: id
+          type: string
+        process:
+          title: id
+          type: string
+        pid:
+          type: integer
+      required:
+      - type
+      title: __entity_collection___entity_id__logs_entries_get_200_response_items_inner_context_oneOf
+    __entity_collection___entity_id__configurations_get_200_response_items_inner:
+      properties:
+        id:
+          description: Unique identifier of a configuration data
+          title: id
+          type: string
+        name:
+          description: Name of the configuration data
+          title: name
+          type: string
+        translation_id:
+          description: Identifier for translating the configurations data name
+          title: translation_id
+          type: string
+        type:
+          description: Configuration type definition
+          enum:
+          - bulk
+          - parameter
+          title: type
+          type: string
+        version:
+          description: Version of the configuration data. version and content_type
+            are mandatory for bulk data configurations but are not present for parameter-based
+            configurations.
+          title: version
+          type: string
+        content_type:
+          description: "MIME type with information for the SOVD client about the content\
+            \ type, e.g., XML etc. version and content_type are mandatory for bulk\
+            \ data configurations but are not present for parameter-based configurations."
+          title: content_type
+          type: string
+      required:
+      - id
+      - name
+      - type
+      title: __entity_collection___entity_id__configurations_get_200_response_items_inner
+    getEngineEcuSpeed_200_response:
+      example:
+        unit: km/h
+        data_id: speed
+        value: 87.5
+      properties:
+        data_id:
+          example: speed
+          title: data_id
+          type: string
+        value:
+          example: 87.5
+          title: value
+          type: number
+        unit:
+          example: km/h
+          title: unit
+          type: string
+      title: getEngineEcuSpeed_200_response
+    __entity_collection___entity_id__data_groups_get_200_response:
+      example:
+        items:
+        - "{}"
+        - "{}"
+      properties:
+        items:
+          items:
+            type: object
+          title: items
+          type: array
+      required:
+      - items
+      title: __entity_collection___entity_id__data_groups_get_200_response
+    __entity_collection___entity_id__bulk_data_get_200_response:
+      example:
+        schema: "{}"
+        items:
+        - maps
+        - maps
+      properties:
+        items:
+          description: The bulk data categories supported by the entity.
+          items:
+            description: These enumeration values are an example and not normative.
+            enum:
+            - maps
+            - pois
+            - logs
+            type: string
+          title: items
+          type: array
+        schema:
+          description: |
+            Placeholder schema definition. (External OpenAPI 3.1 schema reference removed for generator compatibility)
+          title: schema
+          type: object
+      required:
+      - items
+      title: __entity_collection___entity_id__bulk_data_get_200_response
+    __entity_collection___entity_id__operations__operation_id__executions_post_202_response:
+      example:
+        id: fd34f39d-06e7-494b-af2d-8928e1458fb0
+        status: running
+      properties:
+        id:
+          description: "Identifier for monitoring the execution of the operation and\
+            \ performing additional operations on the execution instance (e.g., freeze)"
+          type: string
+        status:
+          description: "running: The execution of an operation is running. completed:\
+            \ The execution of an operation has completed successfully. failed: The\
+            \ execution of an operation has terminated with a fault."
+          enum:
+          - running
+          - completed
+          - failed
+          type: string
+      required:
+      - id
+      title: __entity_collection___entity_id__operations__operation_id__executions_post_202_response
+    __entity_collection___entity_id__updates_get_200_response:
+      example:
+        items:
+        - autonomous
+        - ADAS-v2.03.2154
+        - CAM-v1.18.8643
+      properties:
+        items:
+          description: The list of values for the data resources specified as part
+            of the data list.
+          example:
+          - autonomous
+          - ADAS-v2.03.2154
+          - CAM-v1.18.8643
+          items:
+            title: id
+            type: string
+          title: items
+          type: array
+      required:
+      - items
+      title: __entity_collection___entity_id__updates_get_200_response

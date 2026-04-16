@@ -1,0 +1,6 @@
+sovd:
+  host: "localhost"
+  port: 8081
+  base_url: "http://localhost:8081"
+
+dtc_database_path: "/home/pi/pfe1/sovd-server-fastapi-new/dtc_database.json"

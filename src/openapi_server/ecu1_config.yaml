@@ -1,0 +1,158 @@
+# ============================================================
+# ecu1_config.yaml — ECU 1 : Engine
+#
+# Conforme ASAM SOVD V1.0.0
+# entity_collection : ecu
+# entity_id         : 1
+# ============================================================
+
+ecu:
+  entity_collection: ecu
+  entity_id: "1"
+  description: "ECU 1 — Simulated Engine ECU — ASAM SOVD V1.0.0"
+
+  faults:
+    redis_key_prefix: "ecu1:fault"
+    code_field: "faultCode"
+    dtc_field: "dtc_type"
+    types: [ACTIVE, PENDING, PERMANENT]
+    scope_filter:
+      param: "scope"
+      field: "dtc_type"
+    operations: [GET, GET_BY_ID, POST, DELETE]
+    log_events:
+      add: "FAULT_ADDED"
+      clear: "FAULTS_CLEARED"
+    permanent_clear:
+      enabled: true
+      redis_flag: "ecu1:driving_cycle_complete"
+      cycles_required: 1
+
+  data:
+    redis_key_prefix: "ecu1:data"
+    id_field: "id"
+    value_field: "value"
+    operations: [GET, GET_BY_ID, PUT]
+    sse:
+      enabled: true
+      endpoint: "/ecu/1/data/speed/events"
+      data_id: "speed"
+      interval_ms: 500
+      event_name: "SPEED_UPDATE"
+      min_value: 20
+      max_value: 160
+      unit: "km/h"
+    simulation:
+      mode: scenario
+      loop: true
+      interval_ms: 500
+      scenario:
+        - duration: 2
+          speed: 0
+          rpm: 800
+          fuel_level: 65.0
+          temperature: 85.0
+          voltage: 12.6
+        - duration: 2
+          speed: 50
+          rpm: 2500
+          fuel_level: 64.8
+          temperature: 88.0
+          voltage: 12.5
+        - duration: 2
+          speed: 70
+          rpm: 3200
+          fuel_level: 64.5
+          temperature: 91.0
+          voltage: 12.4
+        - duration: 3
+          speed: 90
+          rpm: 4000
+          fuel_level: 64.0
+          temperature: 95.0
+          voltage: 12.3
+    initial_data:
+      - id: "speed"
+        value: 0
+        unit: "km/h"
+        quality: "good"
+        description: "Vehicle speed"
+      - id: "rpm"
+        value: 800
+        unit: "rpm"
+        quality: "good"
+        description: "Engine RPM"
+      - id: "fuel_level"
+        value: 65.0
+        unit: "%"
+        quality: "good"
+        description: "Fuel level"
+      - id: "temperature"
+        value: 90.0
+        unit: "C"
+        quality: "good"
+        description: "Coolant temperature"
+      - id: "voltage"
+        value: 12.6
+        unit: "V"
+        quality: "good"
+        description: "Battery voltage"
+
+  logs:
+    redis_key: "ecu1:logs:entries"
+    id_field: "id"
+    level_field: "level"
+    max_entries: 200
+    operations: [GET, DELETE]
+    filters:
+      - param: "level"
+        field: "level"
+    levels: [INFO, WARNING, ERROR, DEBUG]
+
+  updates:
+    redis_key_prefix_catalog: "ecu1:update:catalog"
+    redis_key_prefix_status: "ecu1:update:status"
+    id_field: "id"
+    operations: [GET, GET_BY_ID, POST_INSTALL, GET_STATUS]
+    simulation:
+      step_percent: 10
+      step_delay_seconds: 1.5
+    log_events:
+      start: "UPDATE_STARTED"
+      complete: "UPDATE_COMPLETED"
+    initial_catalog:
+      - id: "upd-001"
+        version: "v2.1.3"
+        description: "Engine ECU firmware — stability improvements and sensor calibration"
+        size_mb: 12.4
+        status: "available"
+        released_at: "2026-03-15"
+        critical: false
+      - id: "upd-002"
+        version: "v2.2.0-security"
+        description: "Security patch 2026-04 — CAN bus authentication hardening"
+        size_mb: 4.1
+        status: "available"
+        released_at: "2026-04-01"
+        critical: true
+
+  capabilities:
+    yaml_file: "openapi.yaml"
+    description: "ECU 1 Engine — SOVD Online Capability Description"
+
+  discovery:
+    entity_collection: "ecu"
+    entity_id: "1"
+    name: "Engine ECU"
+    description: "ECU 1 — Simulated Engine ECU — ASAM SOVD V1.0.0"
+    resources:
+      - name: "faults"
+        href: "/ecu/1/faults"
+      - name: "data"
+        href: "/ecu/1/data"
+      - name: "logs"
+        href: "/ecu/1/logs"
+      - name: "updates"
+        href: "/ecu/1/updates"
+      - name: "docs"
+        href: "/ecu/1/docs"

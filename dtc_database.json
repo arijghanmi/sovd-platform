@@ -1,0 +1,284 @@
+{
+  "dtcs": [
+    {
+      "faultCode": "P0001",
+      "description": "Fuel Volume Regulator Control Circuit Open",
+      "severity": 3,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0011",
+      "description": "Camshaft Position Timing Over-Advanced Bank 1",
+      "severity": 2,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0016",
+      "description": "Crankshaft Position Camshaft Position Correlation Bank 1",
+      "severity": 2,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0030",
+      "description": "HO2S Heater Control Circuit Bank 1 Sensor 1",
+      "severity": 2,
+      "component": "exhaust",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0100",
+      "description": "Mass Air Flow Circuit Malfunction",
+      "severity": 3,
+      "component": "sensor",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0101",
+      "description": "Mass Air Flow Circuit Range Performance",
+      "severity": 2,
+      "component": "sensor",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0110",
+      "description": "Intake Air Temperature Circuit Malfunction",
+      "severity": 2,
+      "component": "sensor",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0115",
+      "description": "Engine Coolant Temperature Circuit Malfunction",
+      "severity": 3,
+      "component": "sensor",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0120",
+      "description": "Throttle Position Sensor Circuit Malfunction",
+      "severity": 3,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0130",
+      "description": "O2 Sensor Circuit Malfunction Bank 1 Sensor 1",
+      "severity": 2,
+      "component": "exhaust",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0171",
+      "description": "System Too Lean Bank 1",
+      "severity": 2,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0172",
+      "description": "System Too Rich Bank 1",
+      "severity": 2,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0200",
+      "description": "Injector Circuit Malfunction",
+      "severity": 3,
+      "component": "engine",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0217",
+      "description": "Engine Coolant Over Temperature Condition",
+      "severity": 1,
+      "component": "engine",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0300",
+      "description": "Random Misfire Detected",
+      "severity": 3,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0301",
+      "description": "Cylinder 1 Misfire Detected",
+      "severity": 3,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0302",
+      "description": "Cylinder 2 Misfire Detected",
+      "severity": 3,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0303",
+      "description": "Cylinder 3 Misfire Detected",
+      "severity": 3,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0325",
+      "description": "Knock Sensor Circuit Malfunction Bank 1",
+      "severity": 2,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0335",
+      "description": "Crankshaft Position Sensor Circuit Malfunction",
+      "severity": 1,
+      "component": "engine",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0340",
+      "description": "Camshaft Position Sensor Circuit Malfunction",
+      "severity": 2,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0400",
+      "description": "Exhaust Gas Recirculation Flow Malfunction",
+      "severity": 2,
+      "component": "exhaust",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0420",
+      "description": "Catalyst System Efficiency Below Threshold",
+      "severity": 1,
+      "component": "exhaust",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0440",
+      "description": "Evaporative Emission Control System Malfunction",
+      "severity": 2,
+      "component": "exhaust",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0500",
+      "description": "Vehicle Speed Sensor Malfunction",
+      "severity": 2,
+      "component": "sensor",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0505",
+      "description": "Idle Control System Malfunction",
+      "severity": 2,
+      "component": "engine",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0560",
+      "description": "System Voltage Malfunction",
+      "severity": 2,
+      "component": "electrical",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0600",
+      "description": "Serial Communication Link Malfunction",
+      "severity": 3,
+      "component": "communication",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0605",
+      "description": "Internal Control Module ROM Error",
+      "severity": 1,
+      "component": "ecu",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "P0700",
+      "description": "Transmission Control System Malfunction",
+      "severity": 2,
+      "component": "transmission",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0715",
+      "description": "Input Turbine Speed Sensor Circuit Malfunction",
+      "severity": 2,
+      "component": "transmission",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "P0730",
+      "description": "Incorrect Gear Ratio",
+      "severity": 2,
+      "component": "transmission",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "B0001",
+      "description": "Airbag Driver Deployment Loop Resistance Low",
+      "severity": 1,
+      "component": "safety",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "B0010",
+      "description": "Airbag Passenger Deployment Loop Open",
+      "severity": 1,
+      "component": "safety",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "C0031",
+      "description": "Left Front Wheel Speed Sensor Circuit",
+      "severity": 2,
+      "component": "chassis",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "C0034",
+      "description": "Right Front Wheel Speed Sensor Circuit",
+      "severity": 2,
+      "component": "chassis",
+      "isPermanent": false
+    },
+    {
+      "faultCode": "C0040",
+      "description": "ABS Control Module Malfunction",
+      "severity": 1,
+      "component": "chassis",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "U0001",
+      "description": "High Speed CAN Communication Bus Fault",
+      "severity": 1,
+      "component": "communication",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "U0100",
+      "description": "Lost Communication With ECM/PCM",
+      "severity": 1,
+      "component": "communication",
+      "isPermanent": true
+    },
+    {
+      "faultCode": "U0155",
+      "description": "Lost Communication With Instrument Panel Cluster",
+      "severity": 2,
+      "component": "communication",
+      "isPermanent": false
+    }
+  ]
+}

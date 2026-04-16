@@ -1,0 +1,157 @@
+# ============================================================
+# ecu2_config.yaml — ECU 2 : Transmission
+#
+# Conforme ASAM SOVD V1.0.0
+# entity_collection : ecu
+# entity_id         : 2
+# ============================================================
+
+ecu:
+  entity_collection: ecu
+  entity_id: "2"
+  description: "ECU 2 — Simulated Transmission ECU — ASAM SOVD V1.0.0"
+
+  faults:
+    redis_key_prefix: "ecu2:fault"
+    code_field: "faultCode"
+    dtc_field: "dtc_type"
+    types: [ACTIVE, PENDING, PERMANENT]
+    scope_filter:
+      param: "scope"
+      field: "dtc_type"
+    operations: [GET, GET_BY_ID, POST, DELETE]
+    log_events:
+      add: "FAULT_ADDED"
+      clear: "FAULTS_CLEARED"
+    permanent_clear:
+      enabled: true
+      redis_flag: "ecu2:driving_cycle_complete"
+      cycles_required: 1
+
+  data:
+    redis_key_prefix: "ecu2:data"
+    id_field: "id"
+    value_field: "value"
+    operations: [GET, GET_BY_ID, PUT]
+    sse:
+      enabled: true
+      endpoint: "/ecu/2/data/gear/events"
+      data_id: "gear"
+      interval_ms: 500
+      event_name: "GEAR_UPDATE"
+      min_value: 1
+      max_value: 8
+      unit: "gear"
+    simulation:
+      mode: scenario
+      loop: true
+      interval_ms: 500
+      scenario:
+        - duration: 2
+          gear: 1
+          oil_temp: 60.0
+          oil_pressure: 2.5
+          torque: 150.0
+          efficiency: 85.0
+        - duration: 2
+          gear: 2
+          oil_temp: 65.0
+          oil_pressure: 2.8
+          torque: 200.0
+          efficiency: 88.0
+        - duration: 2
+          gear: 3
+          oil_temp: 70.0
+          oil_pressure: 3.0
+          torque: 240.0
+          efficiency: 91.0
+        - duration: 3
+          gear: 4
+          oil_temp: 75.0
+          oil_pressure: 3.2
+          torque: 270.0
+          efficiency: 93.0
+    initial_data:
+      - id: "gear"
+        value: 1
+        unit: ""
+        quality: "good"
+        description: "Current gear"
+      - id: "oil_temp"
+        value: 60.0
+        unit: "C"
+        quality: "good"
+        description: "Transmission oil temperature"
+      - id: "oil_pressure"
+        value: 2.5
+        unit: "bar"
+        quality: "good"
+        description: "Transmission oil pressure"
+      - id: "torque"
+        value: 150.0
+        unit: "Nm"
+        quality: "good"
+        description: "Engine torque"
+      - id: "efficiency"
+        value: 85.0
+        unit: "%"
+        quality: "good"
+        description: "Transmission efficiency"
+  logs:
+    redis_key: "ecu2:logs:entries"
+    id_field: "id"
+    level_field: "level"
+    max_entries: 200
+    operations: [GET, DELETE]
+    filters:
+      - param: "level"
+        field: "level"
+    levels: [INFO, WARNING, ERROR, DEBUG]
+
+  updates:
+    redis_key_prefix_catalog: "ecu2:update:catalog"
+    redis_key_prefix_status: "ecu2:update:status"
+    id_field: "id"
+    operations: [GET, GET_BY_ID, POST_INSTALL, GET_STATUS]
+    simulation:
+      step_percent: 10
+      step_delay_seconds: 1.5
+    log_events:
+      start: "UPDATE_STARTED"
+      complete: "UPDATE_COMPLETED"
+    initial_catalog:
+      - id: "upd-t001"
+        version: "v1.4.2"
+        description: "Transmission ECU firmware — gear shift optimization"
+        size_mb: 8.2
+        status: "available"
+        released_at: "2026-03-20"
+        critical: false
+      - id: "upd-t002"
+        version: "v1.5.0-critical"
+        description: "Critical fix — torque limiter safety patch"
+        size_mb: 3.1
+        status: "available"
+        released_at: "2026-04-05"
+        critical: true
+
+  capabilities:
+    yaml_file: "openapi.yaml"
+    description: "ECU 2 Transmission — SOVD Online Capability Description"
+
+  discovery:
+    entity_collection: "ecu"
+    entity_id: "2"
+    name: "Transmission ECU"
+    description: "ECU 2 — Simulated Transmission ECU — ASAM SOVD V1.0.0"
+    resources:
+      - name: "faults"
+        href: "/ecu/2/faults"
+      - name: "data"
+        href: "/ecu/2/data"
+      - name: "logs"
+        href: "/ecu/2/logs"
+      - name: "updates"
+        href: "/ecu/2/updates"
+      - name: "docs"
+        href: "/ecu/2/docs"
